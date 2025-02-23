@@ -9,8 +9,14 @@
 │   ├── layout.tsx               # 共通レイアウト
 │   ├── page.tsx                 # ホームページ
 │   ├── (auth)/                  # 認証グループ
+│   │   ├── login/
+│   │   │   └── page.tsx      # Twitterプロバイダーを使用したログインページ
+│   │   └── logout/
+│   │       └── page.tsx      # ログアウト処理とリダイレクト
 │   ├── apps/                    # アプリケーション機能
 │   │   ├── [id]/               # 個別アプリページ
+│   │   │   └── edit/            
+│   │   │       └── page.tsx      # アプリ編集ページ
 │   │   └── create/             # アプリ作成ページ
 │   └── projects/               # プロジェクト機能
 │       ├── page.tsx            # プロジェクト一覧
@@ -40,9 +46,14 @@
 │   │   ├── create-project-button.tsx
 │   │   ├── project-history.tsx
 │   │   ├── project-table.tsx
+│   │   ├── project-details.tsx # プロジェクト詳細情報の表示
+│   │   ├── project-timer.tsx  # プロジェクトの時間計測機能
 │   │   ├── schedule-view.tsx
 │   │   └── task-table.tsx
 │   └── ui/                    # 汎用UI
+│       ├── input.tsx        # shadcn/uiの入力フィールド
+│       ├── navigation-menu.tsx  # shadcn/uiのナビゲーションメニュー
+│       ├── select.tsx       # shadcn/uiのセレクトボックス
 │       ├── button.tsx
 │       ├── calendar.tsx
 │       ├── dialog.tsx
@@ -52,9 +63,24 @@
 │       ├── table.tsx
 │       └── textarea.tsx
 ├── lib/                       # 共有ロジック
-│   └── db.ts                 # データベース設定
+│   ├── actions/              # Server Actions
+│   │   └── app-actions.ts     # アプリのCRUD操作を行うServer Actions
+│   ├── models/               # データモデル
+│   │   ├── app.ts             # アプリケーションのモデル定義
+│   │   └── language.ts        # プログラミング言語のモデル定義
+│   ├── auth.ts              # NextAuth.js設定（Twitterプロバイダー、複数アカウント対応）
+│   └── db.ts               # データベース設定
 ├── prisma/                    # データモデル
 │   └── schema.prisma         # スキーマ定義
+├── tests/                     # テストファイル
+│   └── unit/
+│       ├── components/
+│       │   └── app-form.test.tsx
+│       └── lib/
+│           └── actions/
+│               └── app-actions.test.ts
+├── scripts/                   # ユーティリティスクリプト
+│   └── seed.ts              # 初期データ投入
 └── structure.yaml            # 設定ファイル
 ```
 
