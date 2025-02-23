@@ -113,9 +113,10 @@ export async function updateApp(
 
 export async function deleteApp(id: number) {
   try {
-    await prisma.app.delete({
+    const app = await prisma.app.delete({
       where: { id }
     });
+    return app;
   } catch (error) {
     console.error('Failed to delete app:', error);
     throw new Error('アプリの削除に失敗しました');
