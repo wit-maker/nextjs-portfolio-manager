@@ -15,9 +15,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
+import { CommonStatus } from '@prisma/client';
+
+interface Task {
+  id: number;
+  title: string;
+  status: CommonStatus;
+  priority: string;
+  dueDate: string;
+  comment: string;
+}
+
+const isValidStatus = (status: string): status is CommonStatus => {
+  return ['DRAFT', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED'].includes(status);
+};
 
 export default function TaskTable() {
-  const [tasks, setTasks] = useState([
+  const [tasks, setTasks] = useState<Task[]>([
     {
       id: 1,
       title: 'アプリのUI実装',
@@ -34,7 +48,7 @@ export default function TaskTable() {
       dueDate: '2024-04-15',
       comment: 'RESTful APIの設計に基づいて実装'
     }
-  ]);
+  ] as Task[]);
 
   const statusOptions = [
     { value: 'DRAFT', label: '下書き' },
@@ -75,8 +89,13 @@ export default function TaskTable() {
                       <select 
                         value={task.status}
                         onChange={(e) => {
-                          const updatedTasks = tasks.map(t => 
-                            t.id === task.id ? { ...t, status: e.target.value } : t
+                          const newStatus = e.target.value;
+                          if (!isValidStatus(newStatus)) {
+                            console.error('無効なステータス:', newStatus);
+                            return;
+                          }
+                          const updatedTasks = tasks.map(t =>
+                            t.id === task.id ? { ...t, status: newStatus } : t
                           );
                           setTasks(updatedTasks);
                         }}
