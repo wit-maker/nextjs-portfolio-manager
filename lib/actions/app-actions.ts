@@ -1,22 +1,50 @@
 import prisma from '@/lib/db';
+import { Status } from '@prisma/client';
+
+export type AppStats = {
+  total: number;
+  public: number;
+  private: number;
+};
 
 export type App = {
   id: number;
   name: string;
   description: string;
-  status: 'development' | 'published';
-  languages: string[];
+  status: Status;
   updatedAt: string;
 };
+
+export async function getAppStats(): Promise<AppStats> {
+  try {
+    const [total, publicCount, privateCount] = await Promise.all([
+      prisma.app.count(),
+      prisma.app.count({
+        where: { status: Status.PUBLIC }
+      }),
+      prisma.app.count({
+        where: { status: Status.PRIVATE }
+      })
+    ]);
+
+    return {
+      total,
+      public: publicCount,
+      private: privateCount
+    };
+  } catch (error) {
+    console.error('Failed to fetch app stats:', error);
+    return {
+      total: 0,
+      public: 0,
+      private: 0
+    };
+  }
+}
 
 export async function getApps() {
   try {
     const apps = await prisma.app.findMany({
-      where: {
-        status: {
-          in: ['development', 'published']
-        }
-      },
       orderBy: {
         updatedAt: 'desc'
       },
@@ -25,14 +53,12 @@ export async function getApps() {
         name: true,
         description: true,
         status: true,
-        languages: true,
         updatedAt: true
       }
     });
 
     return apps.map(app => ({
       ...app,
-      languages: app.languages as string[],
       updatedAt: app.updatedAt.toISOString().split('T')[0]
     }));
   } catch (error) {
@@ -44,15 +70,11 @@ export async function getApps() {
 export async function createApp(data: {
   name: string;
   description: string;
-  status: 'development' | 'published';
-  languages: string[];
+  status: Status;
 }) {
   try {
     const app = await prisma.app.create({
-      data: {
-        ...data,
-        languages: data.languages
-      }
+      data
     });
     return app;
   } catch (error) {
@@ -66,8 +88,7 @@ export async function updateApp(
   data: {
     name?: string;
     description?: string;
-    status?: 'development' | 'published';
-    languages?: string[];
+    status?: Status;
   }
 ) {
   try {

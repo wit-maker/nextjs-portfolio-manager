@@ -7,8 +7,44 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { getApps } from '@/lib/actions/app-actions';
+import { Status } from '@prisma/client';
+import { getAllProjects } from '@/lib/actions/project-actions';
+import { format } from 'date-fns';
+import { ja } from 'date-fns/locale';
 
-const DashboardPage: React.FC = () => {
+export default async function DashboardPage() {
+  const { data: projects } = await getAllProjects();
+  const apps = await getApps();
+
+  // アプリのステータス集計
+  const appStats = {
+    total: apps.length,
+    public: apps.filter(app => app.status === 'PUBLIC').length,
+    private: apps.filter(app => app.status === 'PRIVATE').length
+  };
+
+  // プロジェクトの状態集計
+  const projectStats = {
+    inProgress: projects?.filter(p => p.status === 'IN_PROGRESS').length || 0,
+    total: projects?.length || 0,
+    thisWeek: projects?.filter(p => {
+      const startOfWeek = new Date();
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+      return new Date(p.startDate) >= startOfWeek;
+    }).length || 0
+  };
+
+  // 最近更新されたアプリを3件取得
+  const recentApps = apps
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 3);
+
+  // 新着アプリを3件取得
+  const newApps = apps
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 3);
+
   return (
     <div className="p-6 bg-white dark:bg-gray-800">
       <div className="space-y-6">
@@ -25,15 +61,15 @@ const DashboardPage: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span>登録アプリ数</span>
-                  <span className="text-2xl font-bold">12</span>
+                  <span className="text-2xl font-bold">{appStats.total}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>公開アプリ数</span>
-                  <span className="text-2xl font-bold">8</span>
+                  <span className="text-2xl font-bold">{appStats.public}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>開発中アプリ数</span>
-                  <span className="text-2xl font-bold">4</span>
+                  <span className="text-2xl font-bold">{appStats.private}</span>
                 </div>
               </div>
             </CardContent>
@@ -45,14 +81,12 @@ const DashboardPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[
-                  { name: "ポートフォリオサイト", date: "2024/03/20" },
-                  { name: "タスク管理アプリ", date: "2024/03/18" },
-                  { name: "SNS分析ツール", date: "2024/03/15" }
-                ].map((app, index) => (
+                {recentApps.map((app, index) => (
                   <div key={index} className="flex justify-between items-center">
                     <span>{app.name}</span>
-                    <span className="text-sm text-[#666666]">{app.date}</span>
+                    <span className="text-sm text-[#666666]">
+                      {format(new Date(app.updatedAt), 'yyyy/MM/dd', { locale: ja })}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -66,16 +100,16 @@ const DashboardPage: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 <Button className="w-full justify-start">
-                  <span>タスク一覧</span>
-                  <span className="ml-auto">24</span>
+                  <span>進行中のプロジェクト</span>
+                  <span className="ml-auto">{projectStats.inProgress}</span>
                 </Button>
                 <Button className="w-full justify-start">
-                  <span>進行中のプロジェクト</span>
-                  <span className="ml-auto">3</span>
+                  <span>全プロジェクト</span>
+                  <span className="ml-auto">{projectStats.total}</span>
                 </Button>
                 <Button className="w-full justify-start">
                   <span>今週の予定</span>
-                  <span className="ml-auto">8</span>
+                  <span className="ml-auto">{projectStats.thisWeek}</span>
                 </Button>
               </div>
             </CardContent>
@@ -88,23 +122,7 @@ const DashboardPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
-                {
-                  name: "ポートフォリオサイト",
-                  description: "個人の作品や経歴を紹介するウェブサイト",
-                  status: "開発中"
-                },
-                {
-                  name: "タスク管理アプリ",
-                  description: "シンプルで使いやすいタスク管理ツール",
-                  status: "公開中"
-                },
-                {
-                  name: "SNS分析ツール",
-                  description: "SNSの投稿効果を分析・可視化",
-                  status: "計画中"
-                }
-              ].map((app, index) => (
+              {newApps.map((app, index) => (
                 <Card key={index} className="bg-card">
                   <CardHeader>
                     <CardTitle className="text-lg">{app.name}</CardTitle>
@@ -112,7 +130,7 @@ const DashboardPage: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <span className="inline-block px-2 py-1 rounded-full text-sm bg-[#e0e0e0] text-[#333333]">
-                      {app.status}
+                      {app.status === Status.PUBLIC ? '公開中' : '開発中'}
                     </span>
                   </CardContent>
                 </Card>
@@ -123,6 +141,4 @@ const DashboardPage: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default DashboardPage;
+}
