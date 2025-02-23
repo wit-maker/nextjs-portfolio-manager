@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createProject, getAllTechnologies } from '@/lib/actions/project-actions';
+import { createProject, getAllTechnologies, type ProjectFormData } from '@/lib/actions/project-actions';
 import { CommonStatus } from '@prisma/client';
 
 const isValidStatus = (status: string): status is CommonStatus => {
@@ -87,14 +87,15 @@ export const ProjectForm = () => {
       return;
     }
 
-    const data = {
+    // ProjectFormDataの型に厳密に合わせる
+    const data: ProjectFormData = {
       name: formData.get('name') as string,
-      description: formData.get('description') as string,
+      description: (formData.get('description') as string) || undefined,
       startDate: new Date(formData.get('startDate') as string),
       endDate: formData.get('endDate') ? new Date(formData.get('endDate') as string) : undefined,
-      image_url: imageUrl,
-      github_url: formData.get('github_url') as string,
-      demo_url: formData.get('demo_url') as string,
+      image_url: imageUrl || undefined,
+      github_url: (formData.get('github_url') as string) || undefined,
+      demo_url: (formData.get('demo_url') as string) || undefined,
       status: status.toString() as CommonStatus,
       technologies: selectedTechs
     };
