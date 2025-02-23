@@ -438,6 +438,75 @@ NEXT_PUBLIC_BASE_URL=     # アプリケーションのベースURL
 - カレンダーベースのスケジュール表示
 - ステータスに応じた色分け表示
 
+## データモデルの更新（2025/02/24）
+
+### 統一ステータス管理
+新しい`CommonStatus`列挙型の導入により、アプリケーションとプロジェクトで一貫したステータス管理を実現:
+
+```prisma
+enum CommonStatus {
+  DRAFT        // 計画中/非公開
+  IN_PROGRESS  // 進行中/開発中
+  COMPLETED    // 完了/公開中
+  ARCHIVED     // アーカイブ済み
+}
+```
+
+### タスク管理の強化
+新しい`Task`モデルの実装:
+```prisma
+model Task {
+  id          Int         @id @default(autoincrement())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  status      CommonStatus
+  project     Project     @relation(fields: [projectId], references: [id])
+  projectId   Int
+  history     ChangeHistory[]
+}
+```
+
+### 更新履歴の統一管理
+新しい`ChangeHistory`モデルの導入:
+```prisma
+model ChangeHistory {
+  id          Int      @id @default(autoincrement())
+  description String
+  timestamp   DateTime @default(now())
+  app         App?     @relation(fields: [appId], references: [id])
+  appId       Int?
+  project     Project? @relation(fields: [projectId], references: [id])
+  projectId   Int?
+  task        Task?    @relation(fields: [taskId], references: [id])
+  taskId      Int?
+}
+```
+
+## マイグレーション手順
+
+### 1. 環境準備
+```bash
+# 依存関係の更新
+npm install
+
+# Prismaクライアントの生成
+npm run prisma:generate
+```
+
+### 2. データベースマイグレーション
+```bash
+# マイグレーションの実行
+npm run prisma:migrate
+
+# 既存データの変換
+npm run prisma:convert-status
+
+# 全プロセスの一括実行
+npm run migrate:all
+```
+
 ## 拡張予定の機能
 1. タイマー機能（/projects/timer）
 2. タスク管理機能の強化（/projects/tasks）
