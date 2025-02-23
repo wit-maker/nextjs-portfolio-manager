@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/db';
 import { revalidatePath } from 'next/cache';
+import { CommonStatus } from '@prisma/client';
 
 export type ProjectFormData = {
   name: string;
@@ -11,7 +12,7 @@ export type ProjectFormData = {
   image_url?: string;
   github_url?: string;
   demo_url?: string;
-  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'ON_HOLD';
+  status: CommonStatus;
   technologies: number[]; // 技術スタックのID配列
 };
 
