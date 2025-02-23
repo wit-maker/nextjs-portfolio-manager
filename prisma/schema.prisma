@@ -15,11 +15,12 @@ model App {
   app_url     String?
   image_url   String?
   published_at DateTime @default(now())
-  status      Status   @default(PRIVATE)
+  status      CommonStatus @default(DRAFT)
   languages   Language[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   appLanguages AppLanguage[]
+  history     ChangeHistory[]
 
   @@map("apps")
 }
@@ -50,16 +51,18 @@ model Project {
   id          Int       @id @default(autoincrement())
   name        String
   description String?
-  status      ProjectStatus @default(IN_PROGRESS)
+  status      CommonStatus @default(IN_PROGRESS)
   startDate   DateTime
   endDate     DateTime?
   image_url   String?
   github_url  String?
   demo_url    String?
   technologies Language[]
+  tasks       Task[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   projectTechnologies ProjectTechnology[]
+  history     ChangeHistory[]
 
   @@map("projects")
 }
@@ -75,14 +78,39 @@ model ProjectTechnology {
   @@map("project_technologies")
 }
 
-enum Status {
-  PRIVATE
-  PUBLIC
+model Task {
+  id          Int         @id @default(autoincrement())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  status      CommonStatus @default(IN_PROGRESS)
+  project     Project    @relation(fields: [projectId], references: [id])
+  projectId   Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  history     ChangeHistory[]
+
+  @@map("tasks")
 }
 
-enum ProjectStatus {
-  NOT_STARTED
+model ChangeHistory {
+  id          Int      @id @default(autoincrement())
+  description String
+  timestamp   DateTime @default(now())
+  app         App?     @relation(fields: [appId], references: [id])
+  appId       Int?
+  project     Project? @relation(fields: [projectId], references: [id])
+  projectId   Int?
+  task        Task?    @relation(fields: [taskId], references: [id])
+  taskId      Int?
+
+  @@map("change_history")
+}
+
+enum CommonStatus {
+  DRAFT
   IN_PROGRESS
   COMPLETED
-  ON_HOLD
+  ARCHIVED
 }
