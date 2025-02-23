@@ -1,15 +1,15 @@
-import React from 'react';
+'use client';
 
-const CreateProjectButton: React.FC = () => {
+import { Button } from '@/components/ui/button';
+
+export const CreateProjectButton = () => {
   return (
-    <div className="bg-white dark:bg-gray-800 p-4">
-      <Button 
-        className="bg-[#3b82f6] hover:bg-[#2563eb] text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-all duration-200 ease-in-out"
-        onClick={() => window.location.href = '/projects/create'}
-      >
-        プロジェクトを作成
-      </Button>
-    </div>
+    <Button 
+      className="bg-[#c5a572] hover:bg-[#b39362] text-white"
+      onClick={() => window.location.href = '/projects/create'}
+    >
+      新規プロジェクト作成
+    </Button>
   );
 };
 

@@ -60,3 +60,6 @@ prisma/migrations/migration_lock.toml
 # Documentation and analysis files
 system-analysis*.md
 structure.yaml
+
+# Uploaded files
+/public/uploads/**/*
