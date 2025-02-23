@@ -1,43 +1,51 @@
+'use server';
+
 import prisma from '@/lib/db';
-import { Status } from '@prisma/client';
+import { CommonStatus } from '@prisma/client';
 
 export type AppStats = {
   total: number;
-  public: number;
-  private: number;
+  completed: number;
+  inProgress: number;
+  draft: number;
 };
 
 export type App = {
   id: number;
   name: string;
   description: string;
-  status: Status;
+  status: CommonStatus;
   updatedAt: string;
 };
 
 export async function getAppStats(): Promise<AppStats> {
   try {
-    const [total, publicCount, privateCount] = await Promise.all([
+    const [total, completedCount, inProgressCount, draftCount] = await Promise.all([
       prisma.app.count(),
       prisma.app.count({
-        where: { status: Status.PUBLIC }
+        where: { status: CommonStatus.COMPLETED }
       }),
       prisma.app.count({
-        where: { status: Status.PRIVATE }
+        where: { status: CommonStatus.IN_PROGRESS }
+      }),
+      prisma.app.count({
+        where: { status: CommonStatus.DRAFT }
       })
     ]);
 
     return {
       total,
-      public: publicCount,
-      private: privateCount
+      completed: completedCount,
+      inProgress: inProgressCount,
+      draft: draftCount
     };
   } catch (error) {
     console.error('Failed to fetch app stats:', error);
     return {
       total: 0,
-      public: 0,
-      private: 0
+      completed: 0,
+      inProgress: 0,
+      draft: 0
     };
   }
 }
@@ -70,7 +78,7 @@ export async function getApps() {
 export async function createApp(data: {
   name: string;
   description: string;
-  status: Status;
+  status: CommonStatus;
 }) {
   try {
     const app = await prisma.app.create({
@@ -88,7 +96,7 @@ export async function updateApp(
   data: {
     name?: string;
     description?: string;
-    status?: Status;
+    status?: CommonStatus;
   }
 ) {
   try {

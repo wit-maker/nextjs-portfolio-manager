@@ -6,44 +6,75 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAllProjects } from '@/lib/actions/project-actions';
 import { Clock, Github, Play } from 'lucide-react';
 import Link from 'next/link';
+import { CommonStatus } from '@prisma/client';
+
+interface Project {
+  id: number;
+  name: string;
+  description: string;
+  status: CommonStatus;
+  startDate: Date;
+  endDate?: Date;
+  image_url?: string;
+  github_url?: string;
+  demo_url?: string;
+  projectTechnologies?: Array<{
+    language: {
+      id: number;
+      name: string;
+    }
+  }>;
+}
 
 const statusColors = {
-  NOT_STARTED: 'text-gray-500',
-  IN_PROGRESS: 'text-blue-500',
-  COMPLETED: 'text-green-500',
-  ON_HOLD: 'text-yellow-500'
+  [CommonStatus.DRAFT]: 'text-gray-500',
+  [CommonStatus.IN_PROGRESS]: 'text-blue-500',
+  [CommonStatus.COMPLETED]: 'text-green-500',
+  [CommonStatus.ARCHIVED]: 'text-yellow-500'
 };
 
 const statusLabels = {
-  NOT_STARTED: '未着手',
-  IN_PROGRESS: '開発中',
-  COMPLETED: '完了',
-  ON_HOLD: '保留中'
+  [CommonStatus.DRAFT]: '未着手',
+  [CommonStatus.IN_PROGRESS]: '開発中',
+  [CommonStatus.COMPLETED]: '完了',
+  [CommonStatus.ARCHIVED]: '保管'
 };
 
 export function ProjectCardGrid({ showInProgressAndCompleted = false }: { showInProgressAndCompleted?: boolean }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const projectsPerPage = 8;
 
   useEffect(() => {
     const fetchProjects = async () => {
       const result = await getAllProjects();
       if (result.success) {
-        setProjects(result.data);
+        setProjects(result.data.map(project => ({
+          ...project,
+          startDate: new Date(project.startDate),
+          endDate: project.endDate ? new Date(project.endDate) : undefined
+        })));
       }
     };
     fetchProjects();
   }, []);
 
   const filteredProjects = showInProgressAndCompleted
-    ? projects.filter(project => ['IN_PROGRESS', 'COMPLETED'].includes(project.status))
+    ? projects.filter(project => project.status === CommonStatus.IN_PROGRESS || project.status === CommonStatus.COMPLETED)
     : projects;
 
   const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
   const startIndex = (currentPage - 1) * projectsPerPage;
   const endIndex = startIndex + projectsPerPage;
   const currentProjects = filteredProjects.slice(startIndex, endIndex);
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -86,7 +117,7 @@ export function ProjectCardGrid({ showInProgressAndCompleted = false }: { showIn
               <div className="flex items-center justify-between text-sm text-muted-foreground mt-4">
                 <div className="flex items-center">
                   <Clock className="h-4 w-4 mr-1" />
-                  {new Date(project.startDate).toLocaleDateString()}
+                  {formatDate(project.startDate)}
                 </div>
                 <div className="flex items-center gap-2">
                   {project.github_url && (

@@ -1,6 +1,6 @@
 # ダッシュボード改善計画
 
-更新日時:2025/02/24 0:01
+更新日時:2025/02/24 2:36
 
 ## 現状の問題点
 
@@ -34,14 +34,73 @@
 
 ### 1. データモデルの統一
 
+#### ステータス管理の統一（2025/02/24更新）
+
+現在発生している問題：
+- プロジェクト一覧でNOT_STARTEDステータスを使用しているが、CommonStatusには存在しない
+- アプリケーション一覧でPUBLIC/PRIVATEステータスを使用しているが、CommonStatusには存在しない
+- 複数の箇所でステータスの不整合が発生している
+
+対応方針：
+1. CommonStatusへの統一
 ```prisma
-// 共通ステータスの定義
 enum CommonStatus {
   DRAFT        // 計画中/非公開
   IN_PROGRESS  // 進行中/開発中
   COMPLETED    // 完了/公開中
   ARCHIVED     // アーカイブ済み
 }
+```
+
+2. 既存ステータスの移行マッピング
+- プロジェクト
+  - NOT_STARTED -> DRAFT （計画中の状態）
+  - IN_PROGRESS -> IN_PROGRESS （変更なし）
+  - COMPLETED -> COMPLETED （変更なし）
+  - ON_HOLD -> ARCHIVED （保留状態を保管扱いに）
+
+- アプリケーション
+  - PRIVATE -> DRAFT （非公開状態）
+  - PUBLIC -> COMPLETED （公開完了状態）
+
+3. UI表示の統一
+- DRAFT: 計画中/非公開
+- IN_PROGRESS: 進行中/開発中
+- COMPLETED: 完了/公開中
+- ARCHIVED: アーカイブ済み/保管
+
+4. 実装ステップ
+- マイグレーションスクリプトの作成
+- フロントエンドコンポーネントの更新
+- ステータス変更時の整合性チェックの追加
+
+#### ステータスマイグレーション実施記録（2025/02/24追記）
+
+発生した問題：
+- データベース内に'NOT_STARTED'という無効なステータス値が存在
+- CommonStatus enumに存在しない値のため、プロジェクト一覧の取得でエラー発生
+
+解決手順：
+1. マイグレーションのリセットと再構築
+   ```bash
+   rm -rf prisma/migrations/*
+   npx prisma migrate dev --name init
+   ```
+
+2. データの再投入
+   - プロジェクトテーブルを一旦クリア
+   - 正しいステータス値（DRAFT, IN_PROGRESS, COMPLETED）を持つ新しいデータを投入
+   - 技術スタックデータの再投入
+
+結果：
+- プロジェクトデータが正しいステータス値で保存
+- プロジェクト一覧が正常に表示可能
+- 技術スタックとの関連付けも維持
+
+教訓：
+- enumの値を変更する際は、既存データの移行計画を慎重に立てる
+- テストデータを用意する際は、スキーマの制約に従った値を使用する
+- マイグレーションスクリプトは実行前に十分テストする
 
 // タスク管理の追加
 model Task {
@@ -60,12 +119,15 @@ model Task {
 // 更新履歴の統一管理
 model ChangeHistory {
   id          Int      @id @default(autoincrement())
-  entityType  String   // "App" or "Project"
-  entityId    Int
   description String
   timestamp   DateTime @default(now())
+  app         App?     @relation(fields: [appId], references: [id])
+  appId       Int?
+  project     Project? @relation(fields: [projectId], references: [id])
+  projectId   Int?
+  task        Task?    @relation(fields: [taskId], references: [id])
+  taskId      Int?
 }
-```
 
 ### 2. UIコンポーネントの統一
 

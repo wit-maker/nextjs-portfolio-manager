@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getApps } from '@/lib/actions/app-actions';
 import type { App } from '@/lib/actions/app-actions';
 import { BadgeCheck, Code2, Clock } from 'lucide-react';
-import { Status } from '@prisma/client';
+import { CommonStatus } from '@prisma/client';
 
 export function AppTable() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,6 +26,17 @@ export function AppTable() {
   const endIndex = startIndex + appsPerPage;
   const currentApps = apps.slice(startIndex, endIndex);
 
+  const getStatusIcon = (status: CommonStatus) => {
+    switch (status) {
+      case CommonStatus.COMPLETED:
+        return <BadgeCheck className="h-5 w-5 text-green-500" />;
+      case CommonStatus.IN_PROGRESS:
+        return <Code2 className="h-5 w-5 text-blue-500" />;
+      default:
+        return <Clock className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -34,11 +45,7 @@ export function AppTable() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span className="text-lg font-semibold">{app.name}</span>
-                {app.status === Status.PUBLIC ? (
-                  <BadgeCheck className="h-5 w-5 text-green-500" />
-                ) : (
-                  <Code2 className="h-5 w-5 text-blue-500" />
-                )}
+                {getStatusIcon(app.status)}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
