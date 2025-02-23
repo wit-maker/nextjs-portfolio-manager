@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getApps } from '@/lib/actions/app-actions';
-import { Status } from '@prisma/client';
+import { CommonStatus } from '@prisma/client';
 import { getAllProjects } from '@/lib/actions/project-actions';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -20,8 +20,8 @@ export default async function DashboardPage() {
   // アプリのステータス集計
   const appStats = {
     total: apps.length,
-    public: apps.filter(app => app.status === 'PUBLIC').length,
-    private: apps.filter(app => app.status === 'PRIVATE').length
+    public: apps.filter(app => app.status === CommonStatus.COMPLETED).length,
+    private: apps.filter(app => app.status === CommonStatus.IN_PROGRESS).length
   };
 
   // プロジェクトの状態集計
@@ -130,7 +130,7 @@ export default async function DashboardPage() {
                   </CardHeader>
                   <CardContent>
                     <span className="inline-block px-2 py-1 rounded-full text-sm bg-[#e0e0e0] text-[#333333]">
-                      {app.status === Status.PUBLIC ? '公開中' : '開発中'}
+                      {app.status === CommonStatus.COMPLETED ? '公開中' : '開発中'}
                     </span>
                   </CardContent>
                 </Card>
