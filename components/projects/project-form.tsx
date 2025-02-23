@@ -32,7 +32,7 @@ export const ProjectForm = () => {
   useEffect(() => {
     const loadTechnologies = async () => {
       const result = await getAllTechnologies();
-      if (result.success) {
+      if (result.success && result.data) {
         setTechnologies(result.data);
       }
     };
@@ -96,7 +96,7 @@ export const ProjectForm = () => {
       image_url: imageUrl || undefined,
       github_url: (formData.get('github_url') as string) || undefined,
       demo_url: (formData.get('demo_url') as string) || undefined,
-      status: status.toString() as CommonStatus,
+      status: status.toString() as unknown as CommonStatus,
       technologies: selectedTechs
     };
 
@@ -105,7 +105,7 @@ export const ProjectForm = () => {
     if (result.success) {
       router.push('/projects');
     } else {
-      setError(result.error);
+      setError(result.error || 'エラーが発生しました');
     }
     setIsSubmitting(false);
   };
