@@ -1,58 +1,69 @@
-import React, { useState } from 'react';
+'use client';
 
-const AppTable: React.FC = () => {
+import React, { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getApps } from '@/lib/actions/app-actions';
+import type { App } from '@/lib/actions/app-actions';
+import { BadgeCheck, Code2, Clock } from 'lucide-react';
+
+export function AppTable() {
   const [currentPage, setCurrentPage] = useState(1);
-  const appsPerPage = 10;
+  const [apps, setApps] = useState<App[]>([]);
+  const appsPerPage = 8;
 
-  const mockApps = [
-    {
-      id: 1,
-      name: "ポートフォリオ管理アプリ",
-      description: "個人の作品を管理・共有するためのアプリケーション",
-      status: "公開中",
-      languages: ["TypeScript", "Python"],
-      updatedAt: "2024-03-20"
-    },
-    {
-      id: 2,
-      name: "タスク管理ツール",
-      description: "シンプルで使いやすいタスク管理アプリケーション",
-      status: "開発中",
-      languages: ["JavaScript", "React"],
-      updatedAt: "2024-03-19"
-    }
-  ];
+  useEffect(() => {
+    const fetchApps = async () => {
+      const data = await getApps();
+      setApps(data);
+    };
+    fetchApps();
+  }, []);
 
-  const totalPages = Math.ceil(mockApps.length / appsPerPage);
+  const totalPages = Math.ceil(apps.length / appsPerPage);
+  const startIndex = (currentPage - 1) * appsPerPage;
+  const endIndex = startIndex + appsPerPage;
+  const currentApps = apps.slice(startIndex, endIndex);
 
   return (
-    <div className="w-full bg-[#ffffff] dark:bg-[#1a1a1a] p-4 rounded-lg shadow">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[200px]">アプリ名</TableHead>
-              <TableHead className="w-[300px]">説明</TableHead>
-              <TableHead>状態</TableHead>
-              <TableHead>使用言語</TableHead>
-              <TableHead>最終更新日</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {mockApps.map((app) => (
-              <TableRow key={app.id}>
-                <TableCell className="font-medium">{app.name}</TableCell>
-                <TableCell>{app.description}</TableCell>
-                <TableCell>{app.status}</TableCell>
-                <TableCell>{app.languages.join(", ")}</TableCell>
-                <TableCell>{app.updatedAt}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {currentApps.map((app) => (
+          <Card key={app.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="text-lg font-semibold">{app.name}</span>
+                {app.status === 'published' ? (
+                  <BadgeCheck className="h-5 w-5 text-green-500" />
+                ) : (
+                  <Code2 className="h-5 w-5 text-blue-500" />
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground line-clamp-2">
+                {app.description}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {app.languages.map((lang, index) => (
+                  <span
+                    key={index}
+                    className="px-2 py-1 bg-primary/10 rounded-md text-xs font-medium"
+                  >
+                    {lang}
+                  </span>
+                ))}
+              </div>
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Clock className="h-4 w-4 mr-1" />
+                {app.updatedAt}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <div className="flex items-center justify-end space-x-2 py-4">
+      <div className="flex items-center justify-center space-x-2 py-4">
         <Button
           variant="outline"
           size="sm"
@@ -75,6 +86,4 @@ const AppTable: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default AppTable;
+}

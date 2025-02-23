@@ -73,7 +73,11 @@ export async function getAllProjects() {
         startDate: 'desc',
       },
       include: {
-        technologies: true
+        projectTechnologies: {
+          include: {
+            language: true
+          }
+        }
       }
     });
     return { success: true, data: projects };

@@ -71,7 +71,7 @@ export default function RootLayout({
             <div className="container mx-auto px-4 py-6">
               <div className="flex flex-col md:flex-row justify-between items-center">
                 <p className="text-[#6b7280] dark:text-[#9ca3af]">
-                  © 2024 Portfolio Dashboard. All rights reserved.
+                  © 2025 Portfolio Dashboard. All rights reserved.
                 </p>
                 <div className="flex space-x-6 mt-4 md:mt-0">
                   <a href="/privacy" className="text-[#6b7280] dark:text-[#9ca3af] hover:text-[#111827] dark:hover:text-[#f9fafb]">

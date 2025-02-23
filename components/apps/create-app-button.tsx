@@ -1,20 +1,15 @@
 import React from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
 
-const CreateAppButton: React.FC = () => {
+export default function CreateAppButton() {
   return (
-    <div className="bg-white dark:bg-gray-800 p-4">
-      <a 
-        href="/apps/create" 
-        className="inline-flex items-center"
-      >
-        <Button 
-          className="bg-[#3b82f6] hover:bg-[#2563eb] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
-        >
-          新規アプリ作成
-        </Button>
-      </a>
-    </div>
+    <Link href="/apps/create">
+      <Button className="flex items-center gap-2">
+        <PlusCircle className="h-4 w-4" />
+        新規アプリ作成
+      </Button>
+    </Link>
   );
-};
-
-export default CreateAppButton;
+}
