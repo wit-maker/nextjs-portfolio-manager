@@ -17,6 +17,10 @@ import {
 import { createProject, getAllTechnologies } from '@/lib/actions/project-actions';
 import { CommonStatus } from '@prisma/client';
 
+const isValidStatus = (status: string): status is CommonStatus => {
+  return ['DRAFT', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED'].includes(status);
+};
+
 export const ProjectForm = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,6 +80,13 @@ export const ProjectForm = () => {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+    const status = formData.get('status');
+    if (!status || !isValidStatus(status.toString())) {
+      setError('無効なステータスです');
+      setIsSubmitting(false);
+      return;
+    }
+
     const data = {
       name: formData.get('name') as string,
       description: formData.get('description') as string,
@@ -84,7 +95,7 @@ export const ProjectForm = () => {
       image_url: imageUrl,
       github_url: formData.get('github_url') as string,
       demo_url: formData.get('demo_url') as string,
-      status: formData.get('status') as CommonStatus,
+      status: status.toString() as CommonStatus,
       technologies: selectedTechs
     };
 
