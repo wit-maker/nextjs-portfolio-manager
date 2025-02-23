@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createProject, getAllTechnologies } from '@/lib/actions/project-actions';
+import { CommonStatus } from '@prisma/client';
 
 export const ProjectForm = () => {
   const router = useRouter();
@@ -83,7 +84,7 @@ export const ProjectForm = () => {
       image_url: imageUrl,
       github_url: formData.get('github_url') as string,
       demo_url: formData.get('demo_url') as string,
-      status: formData.get('status') as 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'ON_HOLD',
+      status: formData.get('status') as CommonStatus,
       technologies: selectedTechs
     };
 
@@ -121,15 +122,15 @@ export const ProjectForm = () => {
 
       <div className="space-y-2">
         <Label htmlFor="status">進行状態 *</Label>
-        <Select name="status" required defaultValue="NOT_STARTED">
+        <Select name="status" required defaultValue="DRAFT">
           <SelectTrigger>
             <SelectValue placeholder="進行状態を選択" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="NOT_STARTED">未着手</SelectItem>
+            <SelectItem value="DRAFT">下書き</SelectItem>
             <SelectItem value="IN_PROGRESS">進行中</SelectItem>
             <SelectItem value="COMPLETED">完了</SelectItem>
-            <SelectItem value="ON_HOLD">保留中</SelectItem>
+            <SelectItem value="ARCHIVED">アーカイブ</SelectItem>
           </SelectContent>
         </Select>
       </div>

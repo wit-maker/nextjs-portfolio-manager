@@ -21,7 +21,7 @@ export default function TaskTable() {
     {
       id: 1,
       title: 'アプリのUI実装',
-      status: 'TODO',
+      status: 'DRAFT',
       priority: '高',
       dueDate: '2024-04-01',
       comment: 'デザインガイドラインに従って実装する'
@@ -37,10 +37,10 @@ export default function TaskTable() {
   ]);
 
   const statusOptions = [
-    { value: 'TODO', label: '未着手' },
+    { value: 'DRAFT', label: '下書き' },
     { value: 'IN_PROGRESS', label: '進行中' },
-    { value: 'DONE', label: '完了' },
-    { value: 'PENDING', label: '保留' }
+    { value: 'COMPLETED', label: '完了' },
+    { value: 'ARCHIVED', label: 'アーカイブ' }
   ];
 
   const priorityOptions = [
