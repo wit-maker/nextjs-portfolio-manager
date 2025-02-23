@@ -1,5 +1,5 @@
 import prisma from '@/lib/db';
-import { Status } from '@prisma/client';
+import { CommonStatus } from '@prisma/client';
 
 export type AppStats = {
   total: number;
@@ -11,7 +11,7 @@ export type App = {
   id: number;
   name: string;
   description: string;
-  status: Status;
+  status: CommonStatus;
   updatedAt: string;
 };
 
@@ -20,10 +20,10 @@ export async function getAppStats(): Promise<AppStats> {
     const [total, publicCount, privateCount] = await Promise.all([
       prisma.app.count(),
       prisma.app.count({
-        where: { status: Status.PUBLIC }
+        where: { status: CommonStatus.COMPLETED }
       }),
       prisma.app.count({
-        where: { status: Status.PRIVATE }
+        where: { status: CommonStatus.DRAFT }
       })
     ]);
 
@@ -70,7 +70,7 @@ export async function getApps() {
 export async function createApp(data: {
   name: string;
   description: string;
-  status: Status;
+  status: CommonStatus;
 }) {
   try {
     const app = await prisma.app.create({
@@ -88,7 +88,7 @@ export async function updateApp(
   data: {
     name?: string;
     description?: string;
-    status?: Status;
+    status?: CommonStatus;
   }
 ) {
   try {
@@ -105,9 +105,10 @@ export async function updateApp(
 
 export async function deleteApp(id: number) {
   try {
-    await prisma.app.delete({
+    const app = await prisma.app.delete({
       where: { id }
     });
+    return app;
   } catch (error) {
     console.error('Failed to delete app:', error);
     throw new Error('アプリの削除に失敗しました');
