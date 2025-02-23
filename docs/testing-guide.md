@@ -4,11 +4,33 @@
 
 Next.jsプロジェクトとして、以下のテストフレームワークとツールを使用します：
 
-- Jest: Next.jsの標準テストランナー
+- Vitest: モダンで高速なテストランナー
+  - Jest互換APIを提供
+  - ESMネイティブサポート
+  - 高速な実行速度
+  - 優れた開発者体験（Watch mode, UI等）
 - React Testing Library: Reactコンポーネントのテスト
 - @testing-library/jest-dom: DOMテスト用の拡張マッチャー
-- jest-environment-jsdom: ブラウザ環境のシミュレーション
-- Storybook: UIコンポーネントの視覚的テスト（オプション）
+- @vitejs/plugin-react: React用のVitest設定
+- @vitest/coverage-v8: コードカバレッジレポート
+
+### Vitestを選択する理由
+
+1. **パフォーマンス**
+   - 並列実行による高速なテスト実行
+   - 効率的なHMR（Hot Module Replacement）
+   - インテリジェントなファイルウォッチング
+
+2. **開発者体験**
+   - ESMネイティブサポート
+   - TypeScriptの優れたサポート
+   - 詳細なエラーメッセージ
+   - インタラクティブなUIモード
+
+3. **Next.js との相性**
+   - モダンなJavaScript/TypeScriptプロジェクトとの親和性
+   - シンプルな設定
+   - React Server Componentsのサポート
 
 ## テストの種類
 
@@ -38,14 +60,14 @@ Next.jsプロジェクトとして、以下のテストフレームワークと�
 
 ### Server Actionsのテスト
 ```typescript
-import { describe, it, expect, jest } from '@jest/globals';
+import { describe, it, expect, vi } from 'vitest';
 import { getProjectApps } from '@/lib/actions/project-app-actions';
 import { prisma } from '@/lib/db';
 
-jest.mock('@/lib/db', () => ({
+vi.mock('@/lib/db', () => ({
   prisma: {
     project: {
-      findUnique: jest.fn(),
+      findUnique: vi.fn(),
     },
   },
 }));
@@ -69,6 +91,7 @@ describe('Project App Actions', () => {
 
 ### UIコンポーネントのテスト
 ```typescript
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ProjectAppsList } from '@/components/projects/project-apps-list';
 
@@ -115,42 +138,60 @@ describe('ProjectAppsList', () => {
 
 1. 依存パッケージのインストール
 ```bash
-npm install -D jest @testing-library/react @testing-library/jest-dom jest-environment-jsdom
+npm install -D vitest @vitejs/plugin-react @testing-library/react @testing-library/jest-dom @vitest/coverage-v8
 ```
 
-2. Jest設定
-```javascript
-// jest.config.js
-const nextJest = require('next/jest')
+2. Vitest設定
+```typescript
+// vitest.config.ts
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
 
-const createJestConfig = nextJest({
-  dir: './',
-})
-
-const customJestConfig = {
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  testEnvironment: 'jest-environment-jsdom',
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./setup-test.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      exclude: [
+        'node_modules/',
+        'setup-test.ts',
+      ],
+    },
+    alias: {
+      '@': resolve(__dirname, './'),
+    },
   },
-}
-
-module.exports = createJestConfig(customJestConfig)
+});
 ```
 
 3. セットアップファイル
-```javascript
-// jest.setup.js
-import '@testing-library/jest-dom'
+```typescript
+// setup-test.ts
+import '@testing-library/jest-dom';
+import { vi } from 'vitest';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+  }),
+  usePathname: () => vi.fn(),
+}));
 ```
 
 4. package.jsonのscripts追加
 ```json
 {
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest run --coverage"
   }
 }
 ```
