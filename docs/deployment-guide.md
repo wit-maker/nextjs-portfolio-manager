@@ -1,249 +1,176 @@
 # デプロイメントガイド
 
-## 1. APIのデプロイ（Vercel）
+## 1. 環境構築
 
-### 1.1 準備
+### 1.1 依存関係のインストール
 ```bash
-# Vercel CLIのインストール
-npm i -g vercel
+# パッケージのインストール
+npm install
 
-# デプロイ前の準備
-vercel login
-vercel link
+# データベースのセットアップ
+npm run db:setup
 ```
 
 ### 1.2 環境変数の設定
-Vercelのダッシュボードで以下の環境変数を設定：
-```
-DATABASE_URL=postgresql://<username>:<password>@<host>:<port>/<database>
-NEXTAUTH_SECRET=your-secret-key
-NEXTAUTH_URL=https://your-api-domain.vercel.app
+```env
+# .env
+# データベース
+DATABASE_URL="postgresql://<username>:<password>@<host>:<port>/<database>"
+
+# 認証
+NEXTAUTH_SECRET="your-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+
+# Twitter OAuth
+TWITTER_CLIENT_ID="your-twitter-client-id"
+TWITTER_CLIENT_SECRET="your-twitter-client-secret"
 ```
 
-### 1.3 デプロイ実行
+## 2. データベース設定
+
+### 2.1 PostgreSQLのセットアップ
+1. PostgreSQLをインストール
+2. データベースを作成
+3. DATABASE_URLを設定
+
+### 2.2 Prismaマイグレーション
 ```bash
-vercel --prod
-```
+# マイグレーションの作成
+npx prisma migrate dev
 
-## 2. データベース準備
-
-### 2.1 Supabaseでの設定
-1. [Supabase](https://supabase.com)でプロジェクト作成
-2. Connection StringをコピーしてDATA_URLに設定
-3. マイグレーション実行：
-```bash
+# 本番環境でのマイグレーション
 npx prisma migrate deploy
 ```
 
-### 2.2 初期データ投入
-```bash
-npx prisma db seed
-```
+## 3. 画像アップロード
 
-## 3. 画像ホスティング（Cloudinary）
+### 3.1 ローカルストレージ設定
+画像は`public/uploads`ディレクトリに保存され、データベースにはパスが記録されます。
 
-### 3.1 Cloudinaryセットアップ
-1. [Cloudinary](https://cloudinary.com)でアカウント作成
-2. 環境変数の追加：
-```
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
-```
-
-### 3.2 画像アップロード用エンドポイントの設定
 ```typescript
 // app/api/upload/route.ts
-import { v2 as cloudinary } from 'cloudinary';
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-```
+export async function POST(request: Request) {
+  const data = await request.formData();
+  const file: File | null = data.get('file') as unknown as File;
 
-## 4. ポートフォリオサイトでの実装
-
-### 4.1 API連携用の型定義
-```typescript
-// types/api.ts
-export interface Project {
-  id: number;
-  name: string;
-  description: string;
-  githubUrl: string;
-  demoUrl: string;
-  imageUrl: string;
-  technologies: string[];
-  period: {
-    start: string;
-    end: string;
-  };
-  lastUpdated: string;
-}
-
-export interface ApiResponse {
-  status: 'success' | 'error';
-  data?: {
-    projects: Project[];
-    meta: {
-      total: number;
-      generatedAt: string;
-    };
-  };
-  error?: string;
-}
-```
-
-### 4.2 プロジェクトデータの取得
-```typescript
-// lib/api.ts
-import { ApiResponse, Project } from '../types/api';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://your-api-domain.vercel.app';
-
-export async function getProjects(): Promise<Project[]> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/apps/portfolio`, {
-      headers: {
-        'Accept': 'application/json'
-      },
-      next: {
-        revalidate: 3600 // 1時間ごとに再検証
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch projects');
-    }
-
-    const data: ApiResponse = await response.json();
-    
-    if (data.status === 'error' || !data.data) {
-      throw new Error(data.error || 'Invalid response format');
-    }
-
-    return data.data.projects;
-  } catch (error) {
-    console.error('Error fetching projects:', error);
-    return [];
+  if (!file) {
+    return new Response('No file uploaded', { status: 400 });
   }
+
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+
+  const path = join('public', 'uploads', file.name);
+  await writeFile(path, buffer);
+
+  return new Response(JSON.stringify({ 
+    url: `/uploads/${file.name}` 
+  }), { 
+    status: 200 
+  });
 }
 ```
 
-### 4.3 Projectsコンポーネントの実装
+### 3.2 画像の最適化
+Next.jsの組み込み画像最適化を使用：
+
 ```typescript
-// components/Projects.tsx
-import { useEffect, useState } from 'react';
-import { Project } from '../types/api';
-import { getProjects } from '../lib/api';
+import Image from 'next/image';
 
-export default function Projects() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function loadProjects() {
-      try {
-        const data = await getProjects();
-        setProjects(data);
-        setError(null);
-      } catch (err) {
-        setError('プロジェクトの読み込みに失敗しました');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadProjects();
-  }, []);
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
-
+export default function ProjectImage({ src }: { src: string }) {
   return (
-    <section className="projects-section">
-      <h2>プロジェクト</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map(project => (
-          <div key={project.id} className="project-card">
-            <img 
-              src={project.imageUrl} 
-              alt={project.name}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <h3>{project.name}</h3>
-              <p>{project.description}</p>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {project.technologies.map(tech => (
-                  <span key={tech} className="tech-tag">
-                    {tech}
-                  </span>
-                ))}
-              </div>
-              <div className="flex gap-4 mt-4">
-                <a 
-                  href={project.demoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-primary"
-                >
-                  デモ
-                </a>
-                <a
-                  href={project.githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-secondary"
-                >
-                  GitHub
-                </a>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
+    <Image
+      src={src}
+      alt="Project screenshot"
+      width={800}
+      height={600}
+      className="object-cover rounded-lg"
+    />
   );
 }
 ```
 
-## 5. 動作確認
+## 4. セキュリティ設定
 
-### 5.1 ローカル環境での確認
-1. ダッシュボード側：
-```bash
-npm run dev
+### 4.1 CORS設定
+`middleware.ts`でCORSを制御：
+
+```typescript
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export function middleware(request: NextRequest) {
+  const response = NextResponse.next();
+
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    response.headers.set('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  }
+
+  return response;
+}
 ```
 
-2. ポートフォリオサイト側：
-```bash
-npm run dev
+### 4.2 認証設定
+NextAuthの設定：
+
+```typescript
+// app/api/auth/[...nextauth]/route.ts
+import NextAuth from 'next-auth';
+import TwitterProvider from 'next-auth/providers/twitter';
+
+const handler = NextAuth({
+  providers: [
+    TwitterProvider({
+      clientId: process.env.TWITTER_CLIENT_ID!,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+    }),
+  ],
+  callbacks: {
+    async session({ session, token }) {
+      return session;
+    },
+  },
+});
+
+export { handler as GET, handler as POST };
 ```
 
-### 5.2 本番環境での確認
-1. ダッシュボードAPIをデプロイ
-2. ポートフォリオサイトの環境変数を設定
-3. ポートフォリオサイトをデプロイ
-4. CORSの設定を確認
+## 5. Vercelへのデプロイ
+
+### 5.1 デプロイ準備
+1. GitHubリポジトリにプッシュ
+2. Vercelでプロジェクトをインポート
+
+### 5.2 環境変数の設定
+Vercelのダッシュボードで必要な環境変数を設定：
+- DATABASE_URL
+- NEXTAUTH_SECRET
+- NEXTAUTH_URL
+- TWITTER_CLIENT_ID
+- TWITTER_CLIENT_SECRET
+
+### 5.3 デプロイ実行
+1. mainブランチへの変更をプッシュ
+2. Vercelが自動的にビルドとデプロイを実行
 
 ## 6. トラブルシューティング
 
-### 6.1 CORS関連
-- middleware.tsの設定を確認
-- オリジンが正しく許可されているか確認
+### 6.1 画像アップロード
+- アップロードサイズの制限を確認
+- 許可されるファイル形式を確認
+- ストレージ容量を確認
 
 ### 6.2 データベース接続
-- DATABASE_URLが正しく設定されているか確認
-- Supabaseのネットワーク設定を確認
+- DATABASE_URLの形式を確認
+- PostgreSQLのバージョンを確認
+- データベースの接続制限を確認
 
-### 6.3 画像表示
-- Cloudinaryの設定を確認
-- 画像URLの形式を確認
-
-### 6.4 キャッシュ
-- ブラウザのキャッシュをクリア
-- next: { revalidate } の設定を確認
+### 6.3 認証
+- NextAuthの設定を確認
+- 環境変数が正しく設定されているか確認
+- コールバックURLが正しく設定されているか確認

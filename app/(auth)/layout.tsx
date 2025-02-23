@@ -1,8 +1,13 @@
 import React from 'react';
 import { AuthProvider } from './auth/auth-provider';
 import { UserInfo } from './auth/user-info';
+import { Card, CardContent } from '@/components/ui/card';
 
-const AuthLayout: React.FC = ({ children }) => {
+interface AuthLayoutProps {
+  children: React.ReactNode;
+}
+
+const AuthLayout = ({ children }: AuthLayoutProps) => {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-800">
       <AuthProvider>
@@ -13,8 +18,8 @@ const AuthLayout: React.FC = ({ children }) => {
             </h1>
             <UserInfo />
           </div>
-          <Card className="w-full bg-card">
-            <CardContent className="p-6 bg-card">
+          <Card className="w-full">
+            <CardContent className="p-6">
               {children}
             </CardContent>
           </Card>

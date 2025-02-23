@@ -1,4 +1,10 @@
+'use client';
+
 import React, { useState } from 'react';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 const AppForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -12,7 +18,7 @@ const AppForm: React.FC = () => {
     status: 'PRIVATE'
   });
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +36,7 @@ const AppForm: React.FC = () => {
   };
 
   const validateForm = () => {
-    const errors = {};
+    const errors: Record<string, string> = {};
     if (!formData.name.trim()) {
       errors.name = 'アプリ名は必須です';
     }
@@ -45,12 +51,12 @@ const AppForm: React.FC = () => {
   };
 
   return (
-    <Card className="w-full bg-card">
-      <CardHeader className="bg-card">
-        <CardTitle className="bg-card">アプリ情報登録</CardTitle>
-        <CardDescription className="bg-card">アプリケーションの詳細情報を入力してください</CardDescription>
+    <Card>
+      <CardHeader>
+        <CardTitle>アプリ情報登録</CardTitle>
+        <CardDescription>アプリケーションの詳細情報を入力してください</CardDescription>
       </CardHeader>
-      <CardContent className="bg-card">
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <Label htmlFor="name">アプリ名 *</Label>
@@ -71,7 +77,7 @@ const AppForm: React.FC = () => {
               name="description"
               value={formData.description}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded-md"
+              className="w-full mt-1 p-2 border rounded-md bg-background"
               rows={4}
             />
           </div>
@@ -144,7 +150,7 @@ const AppForm: React.FC = () => {
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full mt-1 p-2 border rounded-md"
+              className="w-full mt-1 p-2 border rounded-md bg-background"
             >
               <option value="PRIVATE">非公開</option>
               <option value="PUBLIC">公開</option>

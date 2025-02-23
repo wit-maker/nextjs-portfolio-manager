@@ -1,17 +1,22 @@
-import React from 'react';
+'use client';
 
-const EditAppButton: React.FC<{ appId: string }> = ({ appId }) => {
+import React from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+
+const EditAppButton = ({ appId }: { appId: string }) => {
   return (
-    <a 
-      href={`/apps/${appId}/edit`} 
+    <Link 
+      href={`/apps/${appId}/edit`}
       style={{ textDecoration: 'none' }}
     >
       <Button
-        className="bg-[#4A5568] hover:bg-[#2D3748] text-white"
+        variant="secondary"
+        className="bg-gray-600 hover:bg-gray-700 text-white"
       >
         編集
       </Button>
-    </a>
+    </Link>
   );
 };
 

@@ -1,4 +1,8 @@
+'use client';
+
 import React from 'react';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import { CheckCircle, ArrowRight } from 'lucide-react';
 
 const AppHistory: React.FC = () => {
   const historyItems = [
@@ -29,33 +33,33 @@ const AppHistory: React.FC = () => {
   ];
 
   return (
-    <Card className="w-full bg-card">
-      <CardHeader className="bg-card">
-        <CardTitle className="bg-card">変更履歴</CardTitle>
-        <CardDescription className="bg-card">アプリとタスクの更新履歴</CardDescription>
+    <Card>
+      <CardHeader>
+        <CardTitle>変更履歴</CardTitle>
+        <CardDescription>アプリとタスクの更新履歴</CardDescription>
       </CardHeader>
-      <CardContent className="bg-card">
+      <CardContent>
         <div className="space-y-4">
           {historyItems.map((item) => (
-            <div key={item.id} className="flex items-start space-x-4 p-4 rounded-lg border border-[#e5e7eb] bg-[#ffffff]">
+            <div key={item.id} className="flex items-start space-x-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#f3f4f6]">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
                   {item.type === 'アプリ' ? (
-                    <CheckCircle className="w-6 h-6 text-[#4b5563]" />
+                    <CheckCircle className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                   ) : (
-                    <ArrowRight className="w-6 h-6 text-[#4b5563]" />
+                    <ArrowRight className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                   )}
                 </div>
               </div>
               <div className="flex-grow">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-medium text-[#111827]">{item.appName}</p>
-                    <p className="text-sm text-[#6b7280]">{item.details}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{item.appName}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{item.details}</p>
                   </div>
-                  <span className="text-sm text-[#6b7280]">{item.date}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">{item.date}</span>
                 </div>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#f3f4f6] text-[#4b5563] mt-2">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 mt-2">
                   {item.action}
                 </span>
               </div>

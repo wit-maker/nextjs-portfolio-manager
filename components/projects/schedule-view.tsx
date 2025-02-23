@@ -1,6 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import Calendar from 'react-calendar';
+import React, { useState } from 'react';
+import Calendar, { ViewCallbackProperties } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+
+interface Task {
+  id: number;
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  status: string;
+}
 
 const ScheduleView: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -21,17 +30,17 @@ const ScheduleView: React.FC = () => {
     }
   ]);
 
-  const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  const handleDateChange = (date) => {
+  const handleDateChange = (date: Date) => {
     setSelectedDate(date);
   };
 
-  const handleTaskClick = (task) => {
+  const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
   };
 
-  const tileContent = ({ date, view }) => {
+  const tileContent = ({ date, view }: ViewCallbackProperties) => {
     if (view === 'month') {
       const tasksForDate = tasks.filter(task => 
         date >= task.startDate && date <= task.endDate

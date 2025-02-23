@@ -1,6 +1,13 @@
-import React, { useState } from 'react';
+'use client';
 
-const CreateAppPage: React.FC = () => {
+import React, { useState } from 'react';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
+const CreateAppPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -37,12 +44,12 @@ const CreateAppPage: React.FC = () => {
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6">
-      <Card className="w-full bg-card">
-        <CardHeader className="bg-card">
-          <CardTitle className="bg-card">新規アプリ作成</CardTitle>
-          <CardDescription className="bg-card">アプリの詳細情報を入力してください</CardDescription>
+      <Card>
+        <CardHeader>
+          <h2 className="text-2xl font-semibold">新規アプリ作成</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">アプリの詳細情報を入力してください</p>
         </CardHeader>
-        <CardContent className="bg-card">
+        <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="name">アプリ名 *</Label>
@@ -116,6 +123,7 @@ const CreateAppPage: React.FC = () => {
               <RadioGroup
                 value={formData.status}
                 onValueChange={(value) => setFormData({...formData, status: value})}
+                className="mt-2"
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="PRIVATE" id="private" />

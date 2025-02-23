@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getApps } from '@/lib/actions/app-actions';
 import type { App } from '@/lib/actions/app-actions';
 import { BadgeCheck, Code2, Clock } from 'lucide-react';
+import { Status } from '@prisma/client';
 
 export function AppTable() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,7 +34,7 @@ export function AppTable() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span className="text-lg font-semibold">{app.name}</span>
-                {app.status === 'published' ? (
+                {app.status === Status.PUBLIC ? (
                   <BadgeCheck className="h-5 w-5 text-green-500" />
                 ) : (
                   <Code2 className="h-5 w-5 text-blue-500" />
@@ -44,16 +45,6 @@ export function AppTable() {
               <p className="text-sm text-muted-foreground line-clamp-2">
                 {app.description}
               </p>
-              <div className="flex flex-wrap gap-2">
-                {app.languages.map((lang, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-primary/10 rounded-md text-xs font-medium"
-                  >
-                    {lang}
-                  </span>
-                ))}
-              </div>
               <div className="flex items-center text-sm text-muted-foreground">
                 <Clock className="h-4 w-4 mr-1" />
                 {app.updatedAt}

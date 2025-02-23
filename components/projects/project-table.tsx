@@ -1,4 +1,12 @@
 import React from 'react';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '../ui/table';
 
 const ProjectTable: React.FC = () => {
   const projects = [

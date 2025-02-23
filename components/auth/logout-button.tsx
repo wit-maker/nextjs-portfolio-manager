@@ -1,7 +1,10 @@
+'use client';
+
 import React from 'react';
 import { signOut } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
 
-const LogoutButton: React.FC = () => {
+const LogoutButton = () => {
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/auth/login' });
   };
@@ -11,7 +14,7 @@ const LogoutButton: React.FC = () => {
       <Button 
         onClick={handleLogout}
         variant="destructive"
-        className="w-full bg-[#dc2626] hover:bg-[#b91c1c] text-white"
+        className="w-full"
       >
         ログアウト
       </Button>

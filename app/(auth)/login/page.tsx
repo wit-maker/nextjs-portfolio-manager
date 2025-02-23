@@ -1,7 +1,16 @@
+'use client';
+
 import React, { useState } from 'react';
 import { signIn } from 'next-auth/react';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,19 +36,19 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#ffffff] dark:bg-[#1a1a1a]">
-      <Card className="w-[400px] bg-[#ffffff] dark:bg-[#2a2a2a]">
+      <Card className="w-[400px]">
         <CardHeader>
-          <CardTitle className="text-center text-[#333333] dark:text-[#ffffff]">
+          <h2 className="text-2xl font-semibold text-center">
             ポートフォリオダッシュボード
-          </CardTitle>
-          <CardDescription className="text-center text-[#666666] dark:text-[#cccccc]">
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
             Twitterアカウントでログイン
-          </CardDescription>
+          </p>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <Button
-              className="w-full bg-[#1DA1F2] hover:bg-[#1a8cd8] text-[#ffffff]"
+              className="w-full bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white"
               onClick={handleTwitterLogin}
               disabled={isLoading}
             >
@@ -47,7 +56,7 @@ const LoginPage: React.FC = () => {
             </Button>
             
             {error && (
-              <div className="p-3 text-sm text-[#dc2626] bg-[#fee2e2] dark:bg-[#3f1d1d] rounded-md">
+              <div className="p-3 text-sm text-red-600 bg-red-100 dark:bg-red-900/20 rounded-md">
                 {error}
               </div>
             )}

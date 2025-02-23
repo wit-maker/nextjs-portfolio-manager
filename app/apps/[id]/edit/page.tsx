@@ -1,10 +1,14 @@
-import React from 'react';
+'use client';
 
-const AppPage: React.FC = () => {
+import React from 'react';
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+
+const AppPage = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-800 p-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <Card className="bg-card">
+        <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle className="text-2xl">アプリ詳細</CardTitle>
@@ -66,7 +70,7 @@ const AppPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-card">
+        <Card>
           <CardHeader>
             <CardTitle>更新履歴</CardTitle>
           </CardHeader>

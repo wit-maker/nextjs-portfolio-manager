@@ -1,6 +1,17 @@
-import React, { useState } from 'react';
+'use client';
 
-const DeleteAppButton: React.FC<{ appId: string }> = ({ appId }) => {
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+
+const DeleteAppButton = ({ appId }: { appId: string }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -20,20 +31,19 @@ const DeleteAppButton: React.FC<{ appId: string }> = ({ appId }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800">
+    <div>
       <Button 
         variant="destructive" 
         onClick={() => setIsOpen(true)}
-        className="bg-[#dc2626] hover:bg-[#b91c1c] text-white"
       >
         削除
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="bg-card">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-[#1f2937] dark:text-white">アプリの削除</DialogTitle>
-            <DialogDescription className="text-[#4b5563] dark:text-gray-300">
+            <DialogTitle>アプリの削除</DialogTitle>
+            <DialogDescription>
               このアプリを削除してもよろしいですか？この操作は取り消せません。
             </DialogDescription>
           </DialogHeader>
@@ -41,7 +51,6 @@ const DeleteAppButton: React.FC<{ appId: string }> = ({ appId }) => {
             <Button
               variant="outline"
               onClick={() => setIsOpen(false)}
-              className="bg-[#f3f4f6] hover:bg-[#e5e7eb] text-[#1f2937]"
             >
               キャンセル
             </Button>
@@ -49,7 +58,6 @@ const DeleteAppButton: React.FC<{ appId: string }> = ({ appId }) => {
               variant="destructive"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-[#dc2626] hover:bg-[#b91c1c] text-white"
             >
               {isDeleting ? '削除中...' : '削除する'}
             </Button>

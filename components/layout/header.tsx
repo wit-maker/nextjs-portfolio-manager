@@ -1,4 +1,8 @@
 import React from 'react';
+import { TabsList, TabsTrigger } from '../ui/tabs';
+import { Separator } from '../ui/separator';
+import { Button } from '../ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 
 const Header: React.FC = () => {
   return (
