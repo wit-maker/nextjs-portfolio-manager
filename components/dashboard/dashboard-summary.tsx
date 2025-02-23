@@ -36,7 +36,7 @@ const DashboardSummary = async () => {
               </CardHeader>
               <CardContent className="bg-card">
                 <p className="text-4xl font-bold text-[#10b981] dark:text-[#34d399]">
-                  {stats.public}
+                  {stats.completed}
                 </p>
               </CardContent>
             </Card>
@@ -49,7 +49,7 @@ const DashboardSummary = async () => {
               </CardHeader>
               <CardContent className="bg-card">
                 <p className="text-4xl font-bold text-[#f59e0b] dark:text-[#fbbf24]">
-                  {stats.private}
+                  {stats.inProgress}
                 </p>
               </CardContent>
             </Card>
