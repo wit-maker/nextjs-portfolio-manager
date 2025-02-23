@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { ProjectStatus } from '@prisma/client';
+import { CommonStatus } from '@prisma/client';
 import { headers } from 'next/headers';
 
 export async function GET() {
@@ -13,7 +13,7 @@ export async function GET() {
     // 完了したプロジェクトを取得
     const completedProjects = await prisma.project.findMany({
       where: {
-        status: ProjectStatus.COMPLETED
+        status: CommonStatus.COMPLETED
       },
       include: {
         projectTechnologies: {
