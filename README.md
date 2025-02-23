@@ -18,9 +18,11 @@
 │   │   │   └── edit/            
 │   │   │       └── page.tsx      # アプリ編集ページ
 │   │   └── create/             # アプリ作成ページ
+│   │       └── page.tsx            
 │   └── projects/               # プロジェクト機能
 │       ├── page.tsx            # プロジェクト一覧
 │       └── [id]/              # 個別プロジェクト
+│           └── page.tsx     
 ├── components/                  # 共有コンポーネント
 │   ├── apps/                   # アプリ関連
 │   │   ├── app-details.tsx    # 詳細表示
@@ -187,6 +189,33 @@ Next.jsのApp Routerを活用した、統合的なポートフォリオ管理・
   - バージョン管理
   - GitHub Actionsによる自動化
   - プルリクエストによるセルフレビュー
+
+## コミットルール
+
+### コミットメッセージ形式
+```
+<type>: <description>
+
+[optional body]
+[optional footer]
+```
+
+### Type
+- feat: 新機能
+- fix: バグ修正
+- docs: ドキュメントのみの変更
+- style: コードの動作に影響しない変更（空白、フォーマット、セミコロンの追加など）
+- refactor: バグ修正や機能追加を含まないコードの変更
+- test: テストの追加・修正
+- chore: ビルドプロセスやドキュメント生成などの補助ツールやライブラリの変更
+
+### ブランチ運用
+- main: プロダクションブランチ
+- develop: 開発ブランチ
+- feature/*: 機能追加
+- fix/*: バグ修正
+- docs/*: ドキュメント更新
+- refactor/*: リファクタリング
 
 ### 本番環境
 #### Vercel

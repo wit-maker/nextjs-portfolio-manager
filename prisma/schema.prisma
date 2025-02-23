@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model App {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  github_url  String?
+  app_url     String?
+  image_url   String?
+  published_at DateTime @default(now())
+  status      Status   @default(PRIVATE)
+  languages   Language[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("apps")
+}
+
+model Language {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  apps App[]
+
+  @@map("languages")
+}
+
+model AppLanguage {
+  id         Int      @id @default(autoincrement())
+  appId      Int
+  languageId Int
+  app        App      @relation(fields: [appId], references: [id])
+  language   Language @relation(fields: [languageId], references: [id])
+
+  @@unique([appId, languageId])
+  @@map("app_languages")
+}
+
+enum Status {
+  PRIVATE
+  PUBLIC
+};
