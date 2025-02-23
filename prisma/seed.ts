@@ -1,8 +1,12 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient, CommonStatus } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const db = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+});
 
 async function main() {
+  console.log('シードの開始...');
+  
   // 技術スタックのシードデータ
   const technologies = [
     { name: 'JavaScript' },
@@ -38,9 +42,10 @@ async function main() {
   ];
 
   // 技術スタックの作成
+  console.log('技術スタックの作成中...');
   const createdTechnologies = {};
   for (const tech of technologies) {
-    const created = await prisma.language.upsert({
+    const created = await db.language.upsert({
       where: { name: tech.name },
       update: {},
       create: { name: tech.name },
@@ -53,7 +58,7 @@ async function main() {
     {
       name: 'ポートフォリオサイト',
       description: '自己紹介と作品を紹介するためのウェブサイト',
-      status: 'IN_PROGRESS',
+      status: CommonStatus.IN_PROGRESS,
       startDate: new Date('2024-01-01'),
       endDate: new Date('2024-03-31'),
       technologies: ['React', 'TypeScript', 'Tailwind CSS'],
@@ -63,7 +68,7 @@ async function main() {
     {
       name: 'タスク管理アプリ',
       description: 'シンプルで使いやすいタスク管理ツール',
-      status: 'COMPLETED',
+      status: CommonStatus.COMPLETED,
       startDate: new Date('2023-10-01'),
       endDate: new Date('2023-12-31'),
       technologies: ['Next.js', 'TypeScript', 'Prisma', 'PostgreSQL'],
@@ -73,7 +78,7 @@ async function main() {
     {
       name: 'チャットアプリ',
       description: 'リアルタイムコミュニケーションツール',
-      status: 'DRAFT',
+      status: CommonStatus.DRAFT,
       startDate: new Date('2024-04-01'),
       technologies: ['Node.js', 'WebSocket', 'React', 'MongoDB'],
       github_url: 'https://github.com/example/chat-app'
@@ -81,8 +86,9 @@ async function main() {
   ];
 
   // プロジェクトの作成
+  console.log('プロジェクトの作成中...');
   for (const project of projects) {
-    await prisma.project.create({
+    await db.project.create({
       data: {
         name: project.name,
         description: project.description,
@@ -107,9 +113,9 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('エラーが発生しました:', e);
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await db.$disconnect();
   });
