@@ -1,6 +1,6 @@
-import { PrismaClient, CommonStatus } from '@prisma/client';
+const { PrismaClient, CommonStatus } = require('@prisma/client');
 
-const db = new PrismaClient({
+const seedClient = new PrismaClient({
   log: ['query', 'info', 'warn', 'error'],
 });
 
@@ -45,7 +45,7 @@ async function main() {
   console.log('技術スタックの作成中...');
   const createdTechnologies = {};
   for (const tech of technologies) {
-    const created = await db.language.upsert({
+    const created = await seedClient.language.upsert({
       where: { name: tech.name },
       update: {},
       create: { name: tech.name },
@@ -88,7 +88,7 @@ async function main() {
   // プロジェクトの作成
   console.log('プロジェクトの作成中...');
   for (const project of projects) {
-    await db.project.create({
+    await seedClient.project.create({
       data: {
         name: project.name,
         description: project.description,
@@ -108,6 +108,47 @@ async function main() {
     });
   }
 
+  // アプリケーションのサンプルデータ
+  const apps = [
+    {
+      name: 'ポートフォリオビルダー',
+      description: 'プログラマー向けのポートフォリオ作成支援ツール',
+      status: CommonStatus.COMPLETED,
+    },
+    {
+      name: 'コードレビューアシスタント',
+      description: 'AIを活用したコードレビュー支援システム',
+      status: CommonStatus.IN_PROGRESS,
+    },
+    {
+      name: 'デプロイメントマネージャー',
+      description: 'アプリケーションのデプロイを自動化するツール',
+      status: CommonStatus.DRAFT,
+    },
+    {
+      name: 'APIドキュメントジェネレーター',
+      description: 'OpenAPI仕様からドキュメントを自動生成',
+      status: CommonStatus.IN_PROGRESS,
+    },
+    {
+      name: 'コンポーネントライブラリ',
+      description: 'React用の再利用可能なUIコンポーネント集',
+      status: CommonStatus.COMPLETED,
+    }
+  ];
+
+  // アプリケーションの作成
+  console.log('アプリケーションの作成中...');
+  for (const app of apps) {
+    await seedClient.app.create({
+      data: {
+        name: app.name,
+        description: app.description,
+        status: app.status,
+      }
+    });
+  }
+
   console.log('シードデータの投入が完了しました');
 }
 
@@ -117,5 +158,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await db.$disconnect();
+    await seedClient.$disconnect();
   });
