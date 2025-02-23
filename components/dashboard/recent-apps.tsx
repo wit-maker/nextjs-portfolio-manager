@@ -2,29 +2,38 @@
 
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import StatusBadge, { CommonStatus } from '@/components/ui/status-badge';
+
+interface RecentApp {
+  id: number;
+  name: string;
+  description: string;
+  updatedAt: string;
+  status: CommonStatus;
+}
 
 const RecentApps: React.FC = () => {
-  const recentApps = [
+  const recentApps: RecentApp[] = [
     {
       id: 1,
       name: "ポートフォリオ管理アプリ",
       description: "個人の作品やプロジェクトを管理するためのダッシュボード",
       updatedAt: "2024-03-20",
-      status: "公開中"
+      status: "COMPLETED"
     },
     {
       id: 2,
       name: "タスク管理ツール",
       description: "シンプルで使いやすいタスク管理アプリケーション",
       updatedAt: "2024-03-19",
-      status: "開発中"
+      status: "IN_PROGRESS"
     },
     {
       id: 3,
       name: "時間管理アプリ",
       description: "プロジェクトごとの作業時間を記録・分析",
       updatedAt: "2024-03-18",
-      status: "テスト中"
+      status: "DRAFT"
     }
   ];
 
@@ -43,9 +52,7 @@ const RecentApps: React.FC = () => {
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{app.name}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{app.description}</p>
                 </div>
-                <span className="px-2 py-1 text-xs rounded-full bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100">
-                  {app.status}
-                </span>
+                <StatusBadge status={app.status} />
               </div>
               <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 最終更新: {app.updatedAt}

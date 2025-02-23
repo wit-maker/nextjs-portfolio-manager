@@ -5,9 +5,21 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import StatusBadge, { CommonStatus } from '@/components/ui/status-badge';
+
+interface FormData {
+  name: string;
+  description: string;
+  languages: string;
+  technologies: string;
+  github_url: string;
+  app_url: string;
+  image_url: string;
+  status: CommonStatus;
+}
 
 const AppForm: React.FC = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
     languages: '',
@@ -15,7 +27,7 @@ const AppForm: React.FC = () => {
     github_url: '',
     app_url: '',
     image_url: '',
-    status: 'PRIVATE'
+    status: 'DRAFT'
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -49,6 +61,13 @@ const AppForm: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  const statusOptions: { value: CommonStatus; label: string }[] = [
+    { value: 'DRAFT', label: '計画中' },
+    { value: 'IN_PROGRESS', label: '開発中' },
+    { value: 'COMPLETED', label: '公開' },
+    { value: 'ARCHIVED', label: 'アーカイブ' }
+  ];
 
   return (
     <Card>
@@ -152,10 +171,15 @@ const AppForm: React.FC = () => {
               onChange={handleChange}
               className="w-full mt-1 p-2 border rounded-md bg-background"
             >
-              <option value="PRIVATE">非公開</option>
-              <option value="PUBLIC">公開</option>
-              <option value="ARCHIVED">アーカイブ</option>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
+            <div className="mt-2">
+              <StatusBadge status={formData.status as CommonStatus} />
+            </div>
           </div>
 
           {errors.submit && <p className="text-red-500 text-sm">{errors.submit}</p>}

@@ -7,13 +7,23 @@ import {
   TableHead,
   TableCell,
 } from '../ui/table';
+import StatusBadge, { CommonStatus } from '../ui/status-badge';
+
+interface Project {
+  id: number;
+  name: string;
+  status: CommonStatus;
+  tasks: number;
+  progress: number;
+  dueDate: string;
+}
 
 const ProjectTable: React.FC = () => {
-  const projects = [
+  const projects: Project[] = [
     {
       id: 1,
       name: 'ポートフォリオサイト',
-      status: '進行中',
+      status: 'IN_PROGRESS',
       tasks: 12,
       progress: 65,
       dueDate: '2024-04-30'
@@ -21,7 +31,7 @@ const ProjectTable: React.FC = () => {
     {
       id: 2,
       name: 'ECサイト開発',
-      status: '計画中',
+      status: 'DRAFT',
       tasks: 8,
       progress: 0,
       dueDate: '2024-05-15'
@@ -29,7 +39,7 @@ const ProjectTable: React.FC = () => {
     {
       id: 3,
       name: 'APIサーバー構築',
-      status: '完了',
+      status: 'COMPLETED',
       tasks: 15,
       progress: 100,
       dueDate: '2024-03-31'
@@ -54,13 +64,7 @@ const ProjectTable: React.FC = () => {
               <TableRow key={project.id}>
                 <TableCell className="font-medium">{project.name}</TableCell>
                 <TableCell>
-                  <span className={`px-2 py-1 rounded-full text-sm ${
-                    project.status === '完了' ? 'bg-[#22c55e] text-[#ffffff]' :
-                    project.status === '進行中' ? 'bg-[#3b82f6] text-[#ffffff]' :
-                    'bg-[#6b7280] text-[#ffffff]'
-                  }`}>
-                    {project.status}
-                  </span>
+                  <StatusBadge status={project.status} />
                 </TableCell>
                 <TableCell>{project.tasks}</TableCell>
                 <TableCell>
