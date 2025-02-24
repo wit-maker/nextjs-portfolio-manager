@@ -39,10 +39,11 @@ describe('App Actions', () => {
 
   describe('getAppStats', () => {
     it('アプリの統計情報を正常に取得できること', async () => {
-      mockPrisma.app.count.mockImplementation((args) => {
-        if (!args) return Promise.resolve(5);
+      mockPrisma.app.count.mockImplementation((args: { where?: { status: CommonStatus } }) => {
+        if (!args || !args.where) return Promise.resolve(5);
         if (args.where.status === CommonStatus.COMPLETED) return Promise.resolve(3);
         if (args.where.status === CommonStatus.DRAFT) return Promise.resolve(2);
+        if (args.where.status === CommonStatus.IN_PROGRESS) return Promise.resolve(0);
         return Promise.resolve(0);
       });
 
@@ -50,10 +51,11 @@ describe('App Actions', () => {
 
       expect(stats).toEqual({
         total: 5,
-        public: 3,
-        private: 2,
+        completed: 3,
+        draft: 2,
+        inProgress: 0,
       });
-      expect(mockPrisma.app.count).toHaveBeenCalledTimes(3);
+      expect(mockPrisma.app.count).toHaveBeenCalledTimes(4);
     });
 
     it('エラー発生時にデフォルト値を返すこと', async () => {
@@ -63,8 +65,9 @@ describe('App Actions', () => {
 
       expect(stats).toEqual({
         total: 0,
-        public: 0,
-        private: 0,
+        completed: 0,
+        draft: 0,
+        inProgress: 0,
       });
     });
   });

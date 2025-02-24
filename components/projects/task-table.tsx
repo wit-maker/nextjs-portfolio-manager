@@ -16,52 +16,55 @@ import {
 } from "@/components/ui/table";
 import { useState } from "react";
 import { CommonStatus } from '@prisma/client';
+import { Task } from '@/lib/types';
+import { getStatusLabel } from '@/lib/utils/status-converter';
 
-interface Task {
+type TaskTableData = {
   id: number;
   title: string;
   status: CommonStatus;
   priority: string;
-  dueDate: string;
-  comment: string;
-}
+  startDate: Date;
+  endDate: Date | null;
+  description: string | null;
+};
 
 const isValidStatus = (status: string): status is CommonStatus => {
   return Object.values(CommonStatus).includes(status as CommonStatus);
 };
 
 export default function TaskTable() {
-  const [tasks, setTasks] = useState<Task[]>([
+  const [tasks, setTasks] = useState<TaskTableData[]>([
     {
       id: 1,
       title: 'アプリのUI実装',
       status: CommonStatus.DRAFT,
       priority: '高',
-      dueDate: '2024-04-01',
-      comment: 'デザインガイドラインに従って実装する'
+      startDate: new Date('2024-04-01'),
+      endDate: new Date('2024-04-15'),
+      description: 'デザインガイドラインに従って実装する'
     },
     {
       id: 2,
       title: 'APIエンドポイントの実装',
       status: CommonStatus.IN_PROGRESS,
       priority: '中',
-      dueDate: '2024-04-15',
-      comment: 'RESTful APIの設計に基づいて実装'
+      startDate: new Date('2024-04-15'),
+      endDate: new Date('2024-04-30'),
+      description: 'RESTful APIの設計に基づいて実装'
     }
   ]);
-
-  const statusOptions = [
-    { value: CommonStatus.DRAFT, label: '下書き' },
-    { value: CommonStatus.IN_PROGRESS, label: '進行中' },
-    { value: CommonStatus.COMPLETED, label: '完了' },
-    { value: CommonStatus.ARCHIVED, label: 'アーカイブ' }
-  ];
 
   const priorityOptions = [
     { value: '高', label: '高' },
     { value: '中', label: '中' },
     { value: '低', label: '低' }
   ];
+
+  const formatDate = (date: Date | null) => {
+    if (!date) return '';
+    return date.toISOString().split('T')[0];
+  };
 
   return (
     <div className="w-full bg-[#ffffff] dark:bg-[#1a1a1a] p-4 rounded-lg">
@@ -77,8 +80,9 @@ export default function TaskTable() {
                   <TableHead className="text-[#333333] dark:text-[#ffffff]">タイトル</TableHead>
                   <TableHead className="text-[#333333] dark:text-[#ffffff]">状態</TableHead>
                   <TableHead className="text-[#333333] dark:text-[#ffffff]">優先度</TableHead>
-                  <TableHead className="text-[#333333] dark:text-[#ffffff]">期日</TableHead>
-                  <TableHead className="text-[#333333] dark:text-[#ffffff]">コメント</TableHead>
+                  <TableHead className="text-[#333333] dark:text-[#ffffff]">開始日</TableHead>
+                  <TableHead className="text-[#333333] dark:text-[#ffffff]">終了日</TableHead>
+                  <TableHead className="text-[#333333] dark:text-[#ffffff]">説明</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -101,9 +105,9 @@ export default function TaskTable() {
                         }}
                         className="w-full bg-[#ffffff] dark:bg-[#333333] text-[#333333] dark:text-[#ffffff] rounded border border-[#cccccc] dark:border-[#666666]"
                       >
-                        {statusOptions.map(option => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
+                        {Object.values(CommonStatus).map(status => (
+                          <option key={status} value={status}>
+                            {getStatusLabel(status)}
                           </option>
                         ))}
                       </select>
@@ -129,10 +133,23 @@ export default function TaskTable() {
                     <TableCell>
                       <input 
                         type="date" 
-                        value={task.dueDate}
+                        value={formatDate(task.startDate)}
                         onChange={(e) => {
                           const updatedTasks = tasks.map(t => 
-                            t.id === task.id ? { ...t, dueDate: e.target.value } : t
+                            t.id === task.id ? { ...t, startDate: new Date(e.target.value) } : t
+                          );
+                          setTasks(updatedTasks);
+                        }}
+                        className="w-full bg-[#ffffff] dark:bg-[#333333] text-[#333333] dark:text-[#ffffff] rounded border border-[#cccccc] dark:border-[#666666]"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <input 
+                        type="date" 
+                        value={formatDate(task.endDate)}
+                        onChange={(e) => {
+                          const updatedTasks = tasks.map(t => 
+                            t.id === task.id ? { ...t, endDate: new Date(e.target.value) } : t
                           );
                           setTasks(updatedTasks);
                         }}
@@ -142,10 +159,10 @@ export default function TaskTable() {
                     <TableCell>
                       <input 
                         type="text" 
-                        value={task.comment}
+                        value={task.description || ''}
                         onChange={(e) => {
                           const updatedTasks = tasks.map(t => 
-                            t.id === task.id ? { ...t, comment: e.target.value } : t
+                            t.id === task.id ? { ...t, description: e.target.value } : t
                           );
                           setTasks(updatedTasks);
                         }}

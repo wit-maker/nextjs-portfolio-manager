@@ -7,37 +7,14 @@ import { getAllProjects } from '@/lib/actions/project-actions';
 import { Clock, Github, Play } from 'lucide-react';
 import Link from 'next/link';
 import { CommonStatus } from '@prisma/client';
+import { Project } from '@/lib/types';
+import { getStatusLabel } from '@/lib/utils/status-converter';
 
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  status: CommonStatus;
-  startDate: Date;
-  endDate?: Date;
-  image_url?: string;
-  github_url?: string;
-  demo_url?: string;
-  projectTechnologies?: Array<{
-    language: {
-      id: number;
-      name: string;
-    }
-  }>;
-}
-
-const statusColors = {
+const statusColors: Record<CommonStatus, string> = {
   [CommonStatus.DRAFT]: 'text-gray-500',
   [CommonStatus.IN_PROGRESS]: 'text-blue-500',
   [CommonStatus.COMPLETED]: 'text-green-500',
   [CommonStatus.ARCHIVED]: 'text-yellow-500'
-};
-
-const statusLabels = {
-  [CommonStatus.DRAFT]: '未着手',
-  [CommonStatus.IN_PROGRESS]: '開発中',
-  [CommonStatus.COMPLETED]: '完了',
-  [CommonStatus.ARCHIVED]: '保管'
 };
 
 export function ProjectCardGrid({ showInProgressAndCompleted = false }: { showInProgressAndCompleted?: boolean }) {
@@ -48,12 +25,13 @@ export function ProjectCardGrid({ showInProgressAndCompleted = false }: { showIn
   useEffect(() => {
     const fetchProjects = async () => {
       const result = await getAllProjects();
-      if (result.success) {
-        setProjects(result.data.map(project => ({
+      if (result.success && result.data) {
+        const formattedProjects: Project[] = result.data.map(project => ({
           ...project,
           startDate: new Date(project.startDate),
-          endDate: project.endDate ? new Date(project.endDate) : undefined
-        })));
+          endDate: project.endDate ? new Date(project.endDate) : null,
+        }));
+        setProjects(formattedProjects);
       }
     };
     fetchProjects();
@@ -94,17 +72,13 @@ export function ProjectCardGrid({ showInProgressAndCompleted = false }: { showIn
               <CardTitle className="flex items-center justify-between">
                 <span className="text-lg font-semibold">{project.name}</span>
                 <span className={`text-sm font-medium px-2 py-1 rounded-full bg-primary/10 ${statusColors[project.status]}`}>
-                  {statusLabels[project.status]}
+                  {getStatusLabel(project.status)}
                 </span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* <p className="text-sm text-muted-foreground line-clamp-2">
-                {project.description}
-              </p> */}
-              
               <div className="flex flex-wrap gap-2">
-                {project.projectTechnologies?.map((tech: any) => (
+                {project.projectTechnologies?.map((tech) => (
                   <span
                     key={tech.language.id}
                     className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"

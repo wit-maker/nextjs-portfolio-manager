@@ -1,49 +1,98 @@
-import React, { useState } from 'react';
-import Calendar, { ViewCallbackProperties } from 'react-calendar';
+import React from 'react';
+import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+import { CommonStatus } from '@prisma/client';
+import { Task } from '@/lib/types';
+import { getStatusLabel } from '@/lib/utils/status-converter';
 
-interface Task {
-  id: number;
-  title: string;
-  startDate: Date;
-  endDate: Date;
-  status: string;
-}
+type CalendarTileProperties = {
+  date: Date;
+  view: string;
+};
 
 const ScheduleView: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [tasks, setTasks] = useState([
+  const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
+  const [tasks] = React.useState<Task[]>([
     {
       id: 1,
       title: "タスク1",
       startDate: new Date(2024, 2, 1),
       endDate: new Date(2024, 2, 5),
-      status: "進行中"
+      status: CommonStatus.IN_PROGRESS,
+      description: null,
+      projectId: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      project: {
+        id: 1,
+        name: "プロジェクト1",
+        description: null,
+        status: CommonStatus.IN_PROGRESS,
+        startDate: new Date(),
+        endDate: null,
+        image_url: null,
+        github_url: null,
+        demo_url: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
     },
     {
       id: 2,
-      title: "タスク2", 
+      title: "タスク2",
       startDate: new Date(2024, 2, 10),
       endDate: new Date(2024, 2, 15),
-      status: "未着手"
+      status: CommonStatus.DRAFT,
+      description: null,
+      projectId: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      project: {
+        id: 1,
+        name: "プロジェクト1",
+        description: null,
+        status: CommonStatus.IN_PROGRESS,
+        startDate: new Date(),
+        endDate: null,
+        image_url: null,
+        github_url: null,
+        demo_url: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
     }
   ]);
 
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = React.useState<Task | null>(null);
 
-  const handleDateChange = (date: Date) => {
-    setSelectedDate(date);
-  };
+  const handleDateChange = React.useCallback((value: any) => {
+    if (value instanceof Date) {
+      setSelectedDate(value);
+    }
+  }, []);
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
   };
 
-  const tileContent = ({ date, view }: ViewCallbackProperties) => {
+  const getTaskColor = (status: CommonStatus): string => {
+    switch (status) {
+      case CommonStatus.IN_PROGRESS:
+        return '#4CAF50';
+      case CommonStatus.COMPLETED:
+        return '#2196F3';
+      case CommonStatus.ARCHIVED:
+        return '#9E9E9E';
+      default:
+        return '#FFA726';
+    }
+  };
+
+  const tileContent = ({ date, view }: CalendarTileProperties) => {
     if (view === 'month') {
       const tasksForDate = tasks.filter(task => 
-        date >= task.startDate && date <= task.endDate
+        date >= task.startDate && date <= (task.endDate ?? date)
       );
 
       return tasksForDate.length > 0 && (
@@ -52,8 +101,8 @@ const ScheduleView: React.FC = () => {
             <div
               key={task.id}
               onClick={() => handleTaskClick(task)}
-              className="text-xs p-1 rounded cursor-pointer"
-              style={{ backgroundColor: task.status === "進行中" ? "#4CAF50" : "#2196F3" }}
+              className="text-xs p-1 rounded cursor-pointer text-white"
+              style={{ backgroundColor: getTaskColor(task.status) }}
             >
               {task.title}
             </div>
@@ -61,6 +110,7 @@ const ScheduleView: React.FC = () => {
         </div>
       );
     }
+    return null;
   };
 
   return (
@@ -87,8 +137,9 @@ const ScheduleView: React.FC = () => {
                   <div className="space-y-2">
                     <p>タイトル: {selectedTask.title}</p>
                     <p>開始日: {selectedTask.startDate.toLocaleDateString()}</p>
-                    <p>終了日: {selectedTask.endDate.toLocaleDateString()}</p>
-                    <p>ステータス: {selectedTask.status}</p>
+                    <p>終了日: {selectedTask.endDate?.toLocaleDateString() ?? '未定'}</p>
+                    <p>ステータス: {getStatusLabel(selectedTask.status)}</p>
+                    <p>プロジェクト: {selectedTask.project.name}</p>
                   </div>
                 </CardContent>
               </Card>
