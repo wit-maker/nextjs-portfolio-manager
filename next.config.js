@@ -6,6 +6,10 @@ const nextConfig = {
     formats: ['image/webp'],
     remotePatterns: [
       {
+        protocol: 'https',
+        hostname: '**',
+      },
+      {
         protocol: 'http',
         hostname: 'localhost',
       },
