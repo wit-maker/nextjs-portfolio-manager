@@ -15,13 +15,13 @@ import { ja } from 'date-fns/locale';
 
 export default async function DashboardPage() {
   const { data: projects } = await getAllProjects();
-  const apps = await getApps();
+  const { data: apps } = await getApps();
 
   // アプリのステータス集計
   const appStats = {
-    total: apps.length,
-    public: apps.filter(app => app.status === CommonStatus.COMPLETED).length,
-    private: apps.filter(app => app.status === CommonStatus.IN_PROGRESS).length
+    total: apps?.length ?? 0,
+    public: apps?.filter(app => app.status === CommonStatus.COMPLETED).length ?? 0,
+    private: apps?.filter(app => app.status === CommonStatus.IN_PROGRESS).length ?? 0
   };
 
   // プロジェクトの状態集計
@@ -37,13 +37,17 @@ export default async function DashboardPage() {
 
   // 最近更新されたアプリを3件取得
   const recentApps = apps
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, 3);
+    ? apps
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        .slice(0, 3)
+    : [];
 
   // 新着アプリを3件取得
   const newApps = apps
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, 3);
+    ? apps
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        .slice(0, 3)
+    : [];
 
   return (
     <div className="p-6 bg-white dark:bg-gray-800">

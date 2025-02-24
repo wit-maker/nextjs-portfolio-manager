@@ -4,11 +4,13 @@ import React from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
-const UserInfo = () => {
-  const user = {
-    name: "ユーザー名",
-    image: "src/public/images/default-avatar.png"
-  };
+import { User } from '@/lib/types';
+
+interface UserInfoProps {
+  user: User;
+}
+
+const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
 
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex items-center space-x-4">

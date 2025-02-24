@@ -9,8 +9,10 @@ import {
 } from '@/components/ui/card';
 import { getAllProjects } from '@/lib/actions/project-actions';
 import { formatDate } from '@/lib/utils';
+import { CommonStatus } from '@prisma/client';
+import { AlertTriangle } from 'lucide-react';
 
-const getStatusText = (status: string) => {
+const getStatusText = (status: CommonStatus) => {
   const statusMap: { [key: string]: string } = {
     DRAFT: '下書き',
     IN_PROGRESS: '進行中',
@@ -21,13 +23,20 @@ const getStatusText = (status: string) => {
 };
 
 const ProjectsPage = async () => {
-  const { success, data: projects, error } = await getAllProjects();
+  const response = await getAllProjects();
 
-  if (!success || !projects) {
-    return <div>エラーが発生しました: {error}</div>;
+  if (response.status === 'error' || !response.data) {
+    return (
+      <div className="flex flex-col items-center justify-center h-48 space-y-4">
+        <AlertTriangle className="h-8 w-8 text-red-500" />
+        <p className="text-red-500">
+          {response.error?.message || 'プロジェクトの取得に失敗しました'}
+        </p>
+      </div>
+    );
   }
 
-  // このポイント以降、projectsは必ず存在することが保証される
+  const projects = response.data;
   return (
     <div className="bg-white dark:bg-gray-800 p-6">
       <div className="flex justify-between items-center mb-6">

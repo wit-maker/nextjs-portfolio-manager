@@ -14,8 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createProject, getAllTechnologies, type ProjectFormData } from '@/lib/actions/project-actions';
+import { createProject, getAllTechnologies } from '@/lib/actions/project-actions';
 import { CommonStatus } from '@prisma/client';
+import { Language, ProjectFormData } from '@/lib/types';
 
 const isValidStatus = (status: string): status is CommonStatus => {
   return Object.values(CommonStatus).includes(status as CommonStatus);
@@ -26,14 +27,16 @@ export const ProjectForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [technologies, setTechnologies] = useState<Array<{ id: number; name: string }>>([]);
+  const [technologies, setTechnologies] = useState<Language[]>([]);
   const [selectedTechs, setSelectedTechs] = useState<number[]>([]);
 
   useEffect(() => {
     const loadTechnologies = async () => {
       const result = await getAllTechnologies();
-      if (result.success && result.data) {
+      if (result.status === 'success' && result.data) {
         setTechnologies(result.data);
+      } else {
+        setError(result.error?.message || '技術スタックの取得に失敗しました');
       }
     };
     loadTechnologies();
@@ -87,24 +90,24 @@ export const ProjectForm = () => {
       return;
     }
 
-        const data = {
-          name: formData.get('name') as string,
-          description: (formData.get('description') as string) || undefined,
-          startDate: new Date(formData.get('startDate') as string),
-          endDate: formData.get('endDate') ? new Date(formData.get('endDate') as string) : undefined,
-          image_url: imageUrl || undefined,
-          github_url: (formData.get('github_url') as string) || undefined,
-          demo_url: (formData.get('demo_url') as string) || undefined,
-          status: status.toString() as CommonStatus,
-          technologies: selectedTechs
-        } satisfies ProjectFormData;
+    const data = {
+      name: formData.get('name') as string,
+      description: (formData.get('description') as string) || undefined,
+      startDate: new Date(formData.get('startDate') as string),
+      endDate: formData.get('endDate') ? new Date(formData.get('endDate') as string) : undefined,
+      image_url: imageUrl || undefined,
+      github_url: (formData.get('github_url') as string) || undefined,
+      demo_url: (formData.get('demo_url') as string) || undefined,
+      status: status.toString() as CommonStatus,
+      technologies: selectedTechs
+    } satisfies ProjectFormData;
 
     const result = await createProject(data);
     
-    if (result.success) {
+    if (result.status === 'success') {
       router.push('/projects');
     } else {
-      setError(result.error || 'エラーが発生しました');
+      setError(result.error?.message || 'エラーが発生しました');
     }
     setIsSubmitting(false);
   };

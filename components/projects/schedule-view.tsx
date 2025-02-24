@@ -3,12 +3,31 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { CommonStatus } from '@prisma/client';
-import { Task } from '@/lib/types';
+import { Task, Project } from '@/lib/types';
 import { getStatusLabel } from '@/lib/utils/status-converter';
 
 type CalendarTileProperties = {
   date: Date;
   view: string;
+};
+
+type ValuePiece = Date | null;
+type RangeValue = [ValuePiece, ValuePiece];
+
+const mockProject: Project = {
+  id: 1,
+  name: "プロジェクト1",
+  description: null,
+  status: CommonStatus.IN_PROGRESS,
+  startDate: new Date(),
+  endDate: null,
+  image_url: null,
+  github_url: null,
+  demo_url: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  technologies: [],
+  projectTechnologies: []
 };
 
 const ScheduleView: React.FC = () => {
@@ -24,19 +43,7 @@ const ScheduleView: React.FC = () => {
       projectId: 1,
       createdAt: new Date(),
       updatedAt: new Date(),
-      project: {
-        id: 1,
-        name: "プロジェクト1",
-        description: null,
-        status: CommonStatus.IN_PROGRESS,
-        startDate: new Date(),
-        endDate: null,
-        image_url: null,
-        github_url: null,
-        demo_url: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
+      project: mockProject
     },
     {
       id: 2,
@@ -48,25 +55,13 @@ const ScheduleView: React.FC = () => {
       projectId: 1,
       createdAt: new Date(),
       updatedAt: new Date(),
-      project: {
-        id: 1,
-        name: "プロジェクト1",
-        description: null,
-        status: CommonStatus.IN_PROGRESS,
-        startDate: new Date(),
-        endDate: null,
-        image_url: null,
-        github_url: null,
-        demo_url: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
+      project: mockProject
     }
   ]);
 
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null);
 
-  const handleDateChange = React.useCallback((value: any) => {
+  const handleDateChange = React.useCallback((value: ValuePiece | RangeValue) => {
     if (value instanceof Date) {
       setSelectedDate(value);
     }
@@ -100,7 +95,10 @@ const ScheduleView: React.FC = () => {
           {tasksForDate.map(task => (
             <div
               key={task.id}
-              onClick={() => handleTaskClick(task)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTaskClick(task);
+              }}
               className="text-xs p-1 rounded cursor-pointer text-white"
               style={{ backgroundColor: getTaskColor(task.status) }}
             >
@@ -140,6 +138,9 @@ const ScheduleView: React.FC = () => {
                     <p>終了日: {selectedTask.endDate?.toLocaleDateString() ?? '未定'}</p>
                     <p>ステータス: {getStatusLabel(selectedTask.status)}</p>
                     <p>プロジェクト: {selectedTask.project.name}</p>
+                    {selectedTask.project.technologies.length > 0 && (
+                      <p>使用技術: {selectedTask.project.technologies.map(tech => tech.name).join(', ')}</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

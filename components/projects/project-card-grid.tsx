@@ -7,8 +7,10 @@ import { getAllProjects } from '@/lib/actions/project-actions';
 import { Clock, Github, Play } from 'lucide-react';
 import Link from 'next/link';
 import { CommonStatus } from '@prisma/client';
-import { Project } from '@/lib/types';
+import { Project, ApiResponse, ProjectTechnology } from '@/lib/types';
 import { getStatusLabel } from '@/lib/utils/status-converter';
+import { AlertTriangle } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const statusColors: Record<CommonStatus, string> = {
   [CommonStatus.DRAFT]: 'text-gray-500',
@@ -17,25 +19,60 @@ const statusColors: Record<CommonStatus, string> = {
   [CommonStatus.ARCHIVED]: 'text-yellow-500'
 };
 
-export function ProjectCardGrid({ showInProgressAndCompleted = false }: { showInProgressAndCompleted?: boolean }) {
+export interface ProjectCardGridProps {
+  showInProgressAndCompleted?: boolean;
+}
+
+export function ProjectCardGrid({ showInProgressAndCompleted = false }: ProjectCardGridProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const projectsPerPage = 8;
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const result = await getAllProjects();
-      if (result.success && result.data) {
-        const formattedProjects: Project[] = result.data.map(project => ({
-          ...project,
-          startDate: new Date(project.startDate),
-          endDate: project.endDate ? new Date(project.endDate) : null,
-        }));
-        setProjects(formattedProjects);
+      setIsLoading(true);
+      try {
+        const response = await getAllProjects();
+        if (response.status === 'success' && response.data) {
+          const formattedProjects: Project[] = response.data.map(project => ({
+            ...project,
+            startDate: new Date(project.startDate),
+            endDate: project.endDate ? new Date(project.endDate) : null,
+          }));
+          setProjects(formattedProjects);
+          setError(null);
+        } else {
+          setError(response.error?.message || 'プロジェクトの取得に失敗しました');
+          toast.error(response.error?.message || 'プロジェクトの取得に失敗しました');
+        }
+      } catch (error) {
+        setError('プロジェクトの取得中にエラーが発生しました');
+        toast.error('プロジェクトの取得中にエラーが発生しました');
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchProjects();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-48">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-48 space-y-4">
+        <AlertTriangle className="h-8 w-8 text-red-500" />
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   const filteredProjects = showInProgressAndCompleted
     ? projects.filter(project => project.status === CommonStatus.IN_PROGRESS || project.status === CommonStatus.COMPLETED)
@@ -78,12 +115,12 @@ export function ProjectCardGrid({ showInProgressAndCompleted = false }: { showIn
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-2">
-                {project.projectTechnologies?.map((tech) => (
+                {project.technologies.map((tech) => (
                   <span
-                    key={tech.language.id}
+                    key={tech.id}
                     className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
                   >
-                    {tech.language.name}
+                    {tech.name}
                   </span>
                 ))}
               </div>

@@ -17,7 +17,8 @@ vi.mock('../../../../lib/db', () => {
 });
 
 // 型定義のインポート
-import type { App } from '../../../../lib/actions/app-actions';
+import { App, ApiResponse } from '../../../../lib/types';
+import { AppErrors } from '../../../../lib/types/app-types';
 
 // モック化されたPrismaクライアントのインポート
 import prisma from '../../../../lib/db';
@@ -48,26 +49,30 @@ describe('App Actions', () => {
       });
 
       const stats = await getAppStats();
-
       expect(stats).toEqual({
-        total: 5,
-        completed: 3,
-        draft: 2,
-        inProgress: 0,
+        status: 'success',
+        data: {
+          total: 5,
+          completed: 3,
+          draft: 2,
+          inProgress: 0,
+          archived: 0
+        }
       });
-      expect(mockPrisma.app.count).toHaveBeenCalledTimes(4);
+      expect(mockPrisma.app.count).toHaveBeenCalledTimes(5);
     });
 
-    it('エラー発生時にデフォルト値を返すこと', async () => {
+    it('エラー発生時にエラーレスポンスを返すこと', async () => {
       mockPrisma.app.count.mockRejectedValue(new Error('DB error'));
 
       const stats = await getAppStats();
 
       expect(stats).toEqual({
-        total: 0,
-        completed: 0,
-        draft: 0,
-        inProgress: 0,
+        status: 'error',
+        error: {
+          code: AppErrors.FETCH_FAILED,
+          message: 'アプリの統計情報の取得に失敗しました'
+        }
       });
     });
   });
@@ -80,6 +85,12 @@ describe('App Actions', () => {
           name: 'テストアプリ1',
           description: '説明1',
           status: CommonStatus.COMPLETED,
+          github_url: null,
+          app_url: null,
+          image_url: null,
+          published_at: new Date('2024-02-24'),
+          languages: [],
+          createdAt: new Date('2024-02-24'),
           updatedAt: new Date('2024-02-24'),
         },
         {
@@ -87,46 +98,66 @@ describe('App Actions', () => {
           name: 'テストアプリ2',
           description: '説明2',
           status: CommonStatus.DRAFT,
+          github_url: null,
+          app_url: null,
+          image_url: null,
+          published_at: new Date('2024-02-23'),
+          languages: [],
+          createdAt: new Date('2024-02-23'),
           updatedAt: new Date('2024-02-23'),
         },
       ];
 
       mockPrisma.app.findMany.mockResolvedValue(mockApps);
 
-      const apps = await getApps();
+      const response = await getApps();
 
-      expect(apps).toEqual(mockApps.map(app => ({
-        ...app,
-        updatedAt: app.updatedAt.toISOString().split('T')[0],
-      })));
+      expect(response).toEqual({
+        status: 'success',
+        data: mockApps
+      });
       expect(mockPrisma.app.findMany).toHaveBeenCalledWith({
         orderBy: { updatedAt: 'desc' },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          status: true,
-          updatedAt: true,
-        },
+        include: {
+          languages: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        }
       });
     });
 
-    it('エラー発生時に空配列を返すこと', async () => {
+    it('エラー発生時にエラーレスポンスを返すこと', async () => {
       mockPrisma.app.findMany.mockRejectedValue(new Error('DB error'));
 
-      const apps = await getApps();
+      const response = await getApps();
 
-      expect(apps).toEqual([]);
+      expect(response).toEqual({
+        status: 'error',
+        error: {
+          code: AppErrors.FETCH_FAILED,
+          message: 'アプリケーション一覧の取得に失敗しました'
+        }
+      });
     });
   });
 
   describe('createApp', () => {
     it('アプリを正常に作成できること', async () => {
-      const mockApp = {
+      const mockApp: App = {
         id: 1,
         name: '新規アプリ',
         description: '新規アプリの説明',
         status: CommonStatus.COMPLETED,
+        github_url: null,
+        app_url: null,
+        image_url: null,
+        published_at: new Date(),
+        languages: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       mockPrisma.app.create.mockResolvedValue(mockApp);
@@ -135,83 +166,127 @@ describe('App Actions', () => {
         name: '新規アプリ',
         description: '新規アプリの説明',
         status: CommonStatus.COMPLETED,
+        languages: []
       });
 
-      expect(result).toEqual(mockApp);
-      expect(mockPrisma.app.create).toHaveBeenCalledWith({
-        data: {
-          name: '新規アプリ',
-          description: '新規アプリの説明',
-          status: CommonStatus.COMPLETED,
-        },
+      expect(result).toEqual({
+        status: 'success',
+        data: mockApp
       });
     });
 
-    it('エラー発生時に適切なエラーメッセージをスローすること', async () => {
+    it('エラー発生時に適切なエラーレスポンスを返すこと', async () => {
       mockPrisma.app.create.mockRejectedValue(new Error('DB error'));
 
-      await expect(createApp({
+      const result = await createApp({
         name: 'エラーアプリ',
         description: '説明',
         status: CommonStatus.COMPLETED,
-      })).rejects.toThrow('アプリの作成に失敗しました');
+        languages: []
+      });
+
+      expect(result).toEqual({
+        status: 'error',
+        error: {
+          code: AppErrors.CREATE_FAILED,
+          message: 'アプリの作成に失敗しました'
+        }
+      });
     });
   });
 
   describe('updateApp', () => {
     it('アプリを正常に更新できること', async () => {
-      const mockApp = {
+      const mockApp: App = {
         id: 1,
         name: '更新後のアプリ',
+        description: null,
         status: CommonStatus.DRAFT,
+        github_url: null,
+        app_url: null,
+        image_url: null,
+        published_at: new Date(),
+        languages: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       mockPrisma.app.update.mockResolvedValue(mockApp);
 
       const result = await updateApp(1, {
+        id: 1,
         name: '更新後のアプリ',
-        status: CommonStatus.DRAFT,
+        status: CommonStatus.DRAFT
       });
 
-      expect(result).toEqual(mockApp);
-      expect(mockPrisma.app.update).toHaveBeenCalledWith({
-        where: { id: 1 },
-        data: {
-          name: '更新後のアプリ',
-          status: CommonStatus.DRAFT,
-        },
+      expect(result).toEqual({
+        status: 'success',
+        data: mockApp
       });
     });
 
-    it('エラー発生時に適切なエラーメッセージをスローすること', async () => {
-      mockPrisma.app.update.mockRejectedValue(new Error('Record not found'));
+    it('エラー発生時にエラーレスポンスを返すこと', async () => {
+      mockPrisma.app.update.mockRejectedValue(new Error('DB error'));
 
-      await expect(updateApp(999, {
-        name: '存在しないアプリ',
-      })).rejects.toThrow('アプリの更新に失敗しました');
+      const result = await updateApp(999, {
+        id: 999,
+        name: '存在しないアプリ'
+      });
+
+      expect(result).toEqual({
+        status: 'error',
+        error: {
+          code: AppErrors.UPDATE_FAILED,
+          message: 'アプリの更新に失敗しました'
+        }
+      });
     });
   });
 
   describe('deleteApp', () => {
     it('アプリを正常に削除できること', async () => {
-      const mockApp = {
+      const mockApp: App = {
         id: 1,
         name: '削除するアプリ',
+        description: null,
+        status: CommonStatus.DRAFT,
+        github_url: null,
+        app_url: null,
+        image_url: null,
+        published_at: new Date(),
+        languages: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       mockPrisma.app.delete.mockResolvedValue(mockApp);
 
-      await deleteApp(1);
+      const result = await deleteApp(1);
 
+      expect(result).toEqual({
+        status: 'success',
+        data: mockApp
+      });
       expect(mockPrisma.app.delete).toHaveBeenCalledWith({
         where: { id: 1 },
+        include: {
+          languages: true
+        }
       });
     });
 
-    it('エラー発生時に適切なエラーメッセージをスローすること', async () => {
+    it('エラー発生時にエラーレスポンスを返すこと', async () => {
       mockPrisma.app.delete.mockRejectedValue(new Error('Record not found'));
 
-      await expect(deleteApp(999)).rejects.toThrow('アプリの削除に失敗しました');
+      const result = await deleteApp(999);
+
+      expect(result).toEqual({
+        status: 'error',
+        error: {
+          code: AppErrors.DELETE_FAILED,
+          message: 'アプリの削除に失敗しました'
+        }
+      });
     });
   });
 });

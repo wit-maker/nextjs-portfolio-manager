@@ -3,20 +3,17 @@
 import prisma from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { CommonStatus } from '@prisma/client';
+import { ApiResponse, Project, ProjectFormData, Language } from '@/lib/types';
 
-export type ProjectFormData = {
-  name: string;
-  description?: string;
-  startDate: Date;
-  endDate?: Date;
-  image_url?: string;
-  github_url?: string;
-  demo_url?: string;
-  status: CommonStatus;
-  technologies: number[]; // 技術スタックのID配列
-};
+// エラー定数の定義（内部でのみ使用）
+const PROJECT_ERRORS = {
+  CREATE_FAILED: 'PROJECT_CREATE_FAILED',
+  UPDATE_FAILED: 'PROJECT_UPDATE_FAILED',
+  FETCH_FAILED: 'PROJECT_FETCH_FAILED',
+  DELETE_FAILED: 'PROJECT_DELETE_FAILED',
+} as const;
 
-export async function createProject(data: ProjectFormData) {
+export async function createProject(data: ProjectFormData): Promise<ApiResponse<Project>> {
   try {
     const project = await prisma.$transaction(async (tx) => {
       const newProject = await tx.project.create({
@@ -29,51 +26,53 @@ export async function createProject(data: ProjectFormData) {
           github_url: data.github_url,
           demo_url: data.demo_url,
           status: data.status,
-          projectTechnologies: {
-            create: data.technologies.map(techId => ({
-              language: {
-                connect: { id: techId }
-              }
-            }))
+          technologies: {
+            connect: data.technologies.map(id => ({ id }))
           }
         },
         include: {
-          technologies: true
+          technologies: true,
+          projectTechnologies: {
+            include: {
+              language: true
+            }
+          }
         }
       });
       return newProject;
     });
 
     revalidatePath('/projects');
-    return { success: true, data: project };
+    return {
+      status: 'success',
+      data: {
+        ...project,
+        technologies: project.technologies,
+        projectTechnologies: project.projectTechnologies.map(pt => ({
+          projectId: pt.projectId,
+          languageId: pt.languageId,
+          language: pt.language
+        }))
+      }
+    };
   } catch (error) {
     console.error('プロジェクトの作成に失敗しました:', error);
-    return { success: false, error: 'プロジェクトの作成に失敗しました' };
+    return {
+      status: 'error',
+      error: {
+        code: PROJECT_ERRORS.CREATE_FAILED,
+        message: 'プロジェクトの作成に失敗しました'
+      }
+    };
   }
 }
 
-export async function getProject(id: number) {
+export async function getProject(id: number): Promise<ApiResponse<Project>> {
   try {
     const project = await prisma.project.findUnique({
       where: { id },
       include: {
-        technologies: true
-      }
-    });
-    return { success: true, data: project };
-  } catch (error) {
-    console.error('プロジェクトの取得に失敗しました:', error);
-    return { success: false, error: 'プロジェクトの取得に失敗しました' };
-  }
-}
-
-export async function getAllProjects() {
-  try {
-    const projects = await prisma.project.findMany({
-      orderBy: {
-        startDate: 'desc',
-      },
-      include: {
+        technologies: true,
         projectTechnologies: {
           include: {
             language: true
@@ -81,23 +80,115 @@ export async function getAllProjects() {
         }
       }
     });
-    return { success: true, data: projects };
+
+    if (!project) {
+      return {
+        status: 'error',
+        error: {
+          code: PROJECT_ERRORS.FETCH_FAILED,
+          message: 'プロジェクトが見つかりませんでした'
+        }
+      };
+    }
+
+    return {
+      status: 'success',
+      data: {
+        ...project,
+        technologies: project.technologies,
+        projectTechnologies: project.projectTechnologies.map(pt => ({
+          projectId: pt.projectId,
+          languageId: pt.languageId,
+          language: pt.language
+        }))
+      }
+    };
   } catch (error) {
-    console.error('プロジェクト一覧の取得に失敗しました:', error);
-    return { success: false, error: 'プロジェクト一覧の取得に失敗しました' };
+    console.error('プロジェクトの取得に失敗しました:', error);
+    return {
+      status: 'error',
+      error: {
+        code: PROJECT_ERRORS.FETCH_FAILED,
+        message: 'プロジェクトの取得に失敗しました'
+      }
+    };
   }
 }
 
-export async function getAllTechnologies() {
+export async function getAllProjects(): Promise<ApiResponse<Project[]>> {
+  try {
+    const projects = await prisma.project.findMany({
+      orderBy: {
+        startDate: 'desc',
+      },
+      include: {
+        technologies: true,
+        projectTechnologies: {
+          include: {
+            language: true
+          }
+        }
+      }
+    });
+
+    return {
+      status: 'success',
+      data: projects.map(project => ({
+        id: project.id,
+        name: project.name,
+        description: project.description,
+        status: project.status,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        image_url: project.image_url,
+        github_url: project.github_url,
+        demo_url: project.demo_url,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+        technologies: project.technologies,
+        projectTechnologies: project.projectTechnologies.map(pt => ({
+          projectId: pt.projectId,
+          languageId: pt.languageId,
+          language: pt.language
+        }))
+      }))
+    };
+  } catch (error) {
+    console.error('プロジェクト一覧の取得に失敗しました:', error);
+    return {
+      status: 'error',
+      error: {
+        code: PROJECT_ERRORS.FETCH_FAILED,
+        message: 'プロジェクト一覧の取得に失敗しました'
+      }
+    };
+  }
+}
+
+export async function getAllTechnologies(): Promise<ApiResponse<Language[]>> {
   try {
     const technologies = await prisma.language.findMany({
       orderBy: {
         name: 'asc',
       },
+      select: {
+        id: true,
+        name: true
+      }
     });
-    return { success: true, data: technologies };
+    
+    return {
+      status: 'success',
+      data: technologies
+    };
   } catch (error) {
     console.error('技術スタック一覧の取得に失敗しました:', error);
-    return { success: false, error: '技術スタック一覧の取得に失敗しました' };
+    return {
+      status: 'error',
+      error: {
+        code: PROJECT_ERRORS.FETCH_FAILED,
+        message: '技術スタック一覧の取得に失敗しました'
+      }
+    };
   }
 }
