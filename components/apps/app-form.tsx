@@ -5,7 +5,8 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import StatusBadge, { CommonStatus } from '@/components/ui/status-badge';
+import { CommonStatus } from '@prisma/client';
+import StatusBadge from '@/components/ui/status-badge';
 
 interface FormData {
   name: string;

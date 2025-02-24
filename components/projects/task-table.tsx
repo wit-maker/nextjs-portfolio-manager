@@ -27,7 +27,7 @@ interface Task {
 }
 
 const isValidStatus = (status: string): status is CommonStatus => {
-  return ['DRAFT', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED'].includes(status);
+  return Object.values(CommonStatus).includes(status as CommonStatus);
 };
 
 export default function TaskTable() {
@@ -35,7 +35,7 @@ export default function TaskTable() {
     {
       id: 1,
       title: 'アプリのUI実装',
-      status: 'DRAFT',
+      status: CommonStatus.DRAFT,
       priority: '高',
       dueDate: '2024-04-01',
       comment: 'デザインガイドラインに従って実装する'
@@ -43,18 +43,18 @@ export default function TaskTable() {
     {
       id: 2,
       title: 'APIエンドポイントの実装',
-      status: 'IN_PROGRESS',
+      status: CommonStatus.IN_PROGRESS,
       priority: '中',
       dueDate: '2024-04-15',
       comment: 'RESTful APIの設計に基づいて実装'
     }
-  ] as Task[]);
+  ]);
 
   const statusOptions = [
-    { value: 'DRAFT', label: '下書き' },
-    { value: 'IN_PROGRESS', label: '進行中' },
-    { value: 'COMPLETED', label: '完了' },
-    { value: 'ARCHIVED', label: 'アーカイブ' }
+    { value: CommonStatus.DRAFT, label: '下書き' },
+    { value: CommonStatus.IN_PROGRESS, label: '進行中' },
+    { value: CommonStatus.COMPLETED, label: '完了' },
+    { value: CommonStatus.ARCHIVED, label: 'アーカイブ' }
   ];
 
   const priorityOptions = [

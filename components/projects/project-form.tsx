@@ -18,7 +18,7 @@ import { createProject, getAllTechnologies, type ProjectFormData } from '@/lib/a
 import { CommonStatus } from '@prisma/client';
 
 const isValidStatus = (status: string): status is CommonStatus => {
-  return ['DRAFT', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED'].includes(status);
+  return Object.values(CommonStatus).includes(status as CommonStatus);
 };
 
 export const ProjectForm = () => {
@@ -87,18 +87,17 @@ export const ProjectForm = () => {
       return;
     }
 
-    // ProjectFormDataの型に厳密に合わせる
-    const data: ProjectFormData = {
-      name: formData.get('name') as string,
-      description: (formData.get('description') as string) || undefined,
-      startDate: new Date(formData.get('startDate') as string),
-      endDate: formData.get('endDate') ? new Date(formData.get('endDate') as string) : undefined,
-      image_url: imageUrl || undefined,
-      github_url: (formData.get('github_url') as string) || undefined,
-      demo_url: (formData.get('demo_url') as string) || undefined,
-      status: status.toString() as CommonStatus, // isValidStatus()で既に検証済み
-      technologies: selectedTechs
-    };
+        const data = {
+          name: formData.get('name') as string,
+          description: (formData.get('description') as string) || undefined,
+          startDate: new Date(formData.get('startDate') as string),
+          endDate: formData.get('endDate') ? new Date(formData.get('endDate') as string) : undefined,
+          image_url: imageUrl || undefined,
+          github_url: (formData.get('github_url') as string) || undefined,
+          demo_url: (formData.get('demo_url') as string) || undefined,
+          status: status.toString() as CommonStatus,
+          technologies: selectedTechs
+        } satisfies ProjectFormData;
 
     const result = await createProject(data);
     
@@ -134,15 +133,15 @@ export const ProjectForm = () => {
 
       <div className="space-y-2">
         <Label htmlFor="status">進行状態 *</Label>
-        <Select name="status" required defaultValue="DRAFT">
+        <Select name="status" required defaultValue={CommonStatus.DRAFT}>
           <SelectTrigger>
             <SelectValue placeholder="進行状態を選択" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="DRAFT">下書き</SelectItem>
-            <SelectItem value="IN_PROGRESS">進行中</SelectItem>
-            <SelectItem value="COMPLETED">完了</SelectItem>
-            <SelectItem value="ARCHIVED">アーカイブ</SelectItem>
+            <SelectItem value={CommonStatus.DRAFT}>下書き</SelectItem>
+            <SelectItem value={CommonStatus.IN_PROGRESS}>進行中</SelectItem>
+            <SelectItem value={CommonStatus.COMPLETED}>完了</SelectItem>
+            <SelectItem value={CommonStatus.ARCHIVED}>アーカイブ</SelectItem>
           </SelectContent>
         </Select>
       </div>

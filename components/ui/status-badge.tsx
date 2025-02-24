@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-
-type CommonStatus = 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'ARCHIVED';
+import { CommonStatus } from '@prisma/client';
 
 interface StatusBadgeProps {
   status: CommonStatus;

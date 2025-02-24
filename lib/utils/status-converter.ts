@@ -1,6 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client';
-
-type CommonStatus = Prisma.EnumCommonStatusFieldUpdateOperationsInput['set'];
+import { CommonStatus } from '@prisma/client';
 
 /**
  * 既存のステータスを新しいCommonStatusに変換するユーティリティ関数
@@ -8,19 +6,19 @@ type CommonStatus = Prisma.EnumCommonStatusFieldUpdateOperationsInput['set'];
 export const convertLegacyAppStatus = (status: string): CommonStatus => {
   switch (status.toUpperCase()) {
     case 'PUBLIC':
-      return 'COMPLETED';
+      return CommonStatus.COMPLETED;
     case 'PRIVATE':
-      return 'DRAFT';
+      return CommonStatus.DRAFT;
     case 'ARCHIVED':
-      return 'ARCHIVED';
+      return CommonStatus.ARCHIVED;
     case '公開中':
-      return 'COMPLETED';
+      return CommonStatus.COMPLETED;
     case '開発中':
-      return 'IN_PROGRESS';
+      return CommonStatus.IN_PROGRESS;
     case 'テスト中':
-      return 'IN_PROGRESS';
+      return CommonStatus.IN_PROGRESS;
     default:
-      return 'DRAFT';
+      return CommonStatus.DRAFT;
   }
 };
 
@@ -28,17 +26,17 @@ export const convertLegacyProjectStatus = (status: string): CommonStatus => {
   switch (status.toUpperCase()) {
     case 'COMPLETED':
     case '完了':
-      return 'COMPLETED';
+      return CommonStatus.COMPLETED;
     case 'IN_PROGRESS':
     case '進行中':
-      return 'IN_PROGRESS';
+      return CommonStatus.IN_PROGRESS;
     case 'NOT_STARTED':
     case '計画中':
-      return 'DRAFT';
+      return CommonStatus.DRAFT;
     case 'ON_HOLD':
-      return 'ARCHIVED';
+      return CommonStatus.ARCHIVED;
     default:
-      return 'DRAFT';
+      return CommonStatus.DRAFT;
   }
 };
 
@@ -52,21 +50,21 @@ export const determineTaskStatus = (
 ): CommonStatus => {
   const now = new Date();
 
-  if (projectStatus === 'COMPLETED') {
-    return 'COMPLETED';
+  if (projectStatus === CommonStatus.COMPLETED) {
+    return CommonStatus.COMPLETED;
   }
 
-  if (projectStatus === 'ARCHIVED') {
-    return 'ARCHIVED';
+  if (projectStatus === CommonStatus.ARCHIVED) {
+    return CommonStatus.ARCHIVED;
   }
 
   if (startDate > now) {
-    return 'DRAFT';
+    return CommonStatus.DRAFT;
   }
 
   if (endDate && endDate < now) {
-    return 'COMPLETED';
+    return CommonStatus.COMPLETED;
   }
 
-  return 'IN_PROGRESS';
+  return CommonStatus.IN_PROGRESS;
 };
