@@ -96,7 +96,7 @@ export const ProjectForm = () => {
       image_url: imageUrl || undefined,
       github_url: (formData.get('github_url') as string) || undefined,
       demo_url: (formData.get('demo_url') as string) || undefined,
-      status: status.toString() as unknown as CommonStatus,
+      status: status.toString() as CommonStatus, // isValidStatus()で既に検証済み
       technologies: selectedTechs
     };
 

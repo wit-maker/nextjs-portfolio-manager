@@ -12,10 +12,10 @@ import { formatDate } from '@/lib/utils';
 
 const getStatusText = (status: string) => {
   const statusMap: { [key: string]: string } = {
-    NOT_STARTED: '未開始',
+    DRAFT: '下書き',
     IN_PROGRESS: '進行中',
     COMPLETED: '完了',
-    ON_HOLD: '保留中'
+    ARCHIVED: 'アーカイブ'
   };
   return statusMap[status] || status;
 };
@@ -23,9 +23,11 @@ const getStatusText = (status: string) => {
 const ProjectsPage = async () => {
   const { success, data: projects, error } = await getAllProjects();
 
-  if (!success) {
+  if (!success || !projects) {
     return <div>エラーが発生しました: {error}</div>;
   }
+
+  // このポイント以降、projectsは必ず存在することが保証される
   return (
     <div className="bg-white dark:bg-gray-800 p-6">
       <div className="flex justify-between items-center mb-6">
